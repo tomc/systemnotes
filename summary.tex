@@ -1,0 +1,89 @@
+\documentclass[main]{subfile}
+\begin{document}
+	\chapter{System Summary}
+	
+	\Large
+	\begin{center}
+		TaJ Precision
+	\end{center}
+
+	\normalsize
+	
+	``TaJ'' originally just stood for Tom and Jenni, but the name has stuck.
+	
+	Strong club system with 0+ \di1.  All 10 HCP hands opened NV, Vul we can pass 10 when red undertricks are lurking (1NT rebids). All HCP comments are approximate, shapely hands will open lighter.  We often open with 9 and 6 card suits or 8 with shape hands.
+	
+	\section{Opening Bid Summary}
+	
+	\ifbool{christian}
+	{
+		\begin{destable}
+			\cl1 & Strong, Forcing, Artificial.  Typically 16+ HCP unbal or 17+ bal \\
+			\di1 & 0+ \ddd, 10-15.  Denies 5 card major unless 6+ \ddd.  \third seat is 2+ \ddd\\
+			\he1 & 5+ \hhh, 10-15, can be 4 \third/\fourth\\
+			\sp1 & 5+ \sss, 10-15, can be 4 \third/\fourth\\
+			1NT & 14-16.  5 card major, 6 card minor, \shape{5422} common.\\
+			\cl2 & 6+ \ccc, 10-15.  5 card suit possible in \third seat for lead direction.\\
+			\di2/\sss & 3-9, 5 card suit common NV, 7 card suit uncommon but possible Vul. \\
+			\he2 & Weak, 5-4 or better in the majors.  (4-4 W/R) \\ 
+			2NT & 22-23\\
+			3x & Natural, aggressive\\
+			3NT & Good Major preempt.  (Namyats-like)\\
+			4x & Natural, aggressive\\
+		\end{destable}
+
+		\begin{info}
+			\he2 Ekren is considered "Quasi Natural" via definition 3b
+		\end{info}
+			} % end christian
+	{ % else
+		\begin{destable}
+			\cl1 & Strong, Forcing, Artificial.  Typically 16+ HCP unbal or 17+ bal \\
+			\di1 & 0+ \ddd, 10-15.  Denies 5 card major unless 6+ \ddd.  \third seat is 2+ \ddd\\
+			\he1 & 5+ \hhh, 10-15, can be 4 \third/\fourth\\
+			\sp1 & 5+ \sss, 10-15, can be 4 \third/\fourth\\
+			1NT & 14-16.  5 card major, 6 card minor, \shape{5422} common.\\
+			\cl2 & 6+ \ccc, 10-15.  5 card suit possible in \third seat for lead direction.\\
+			\di2 & 6+ \ddd, (8)9-12.  5 card suit possible in \third seat for lead direction.\\
+			\he2/\sss & 3-9, 5 card suit common NV, 7 card suit uncommon but possible Vul\\
+			2NT & 22-23\\
+			3x & Natural, aggressive\\
+			3NT & Good Major preempt.  (Namyats-like)\\
+			4x & Natural, aggressive\\
+		\end{destable}
+	} % end else	
+		
+		No special agreements for 4NT or higher, although I have played 4NT opener as a specific Ace Blackwood before.  Highly unnecessary.
+	
+	\section{General Principles}
+	
+	\begin{itemize}
+		\item Doubles unless otherwise defined are takeout
+		\item All Strange Bids are Forcing (ASBAF).  A general guideline to cover the unknown.
+		\item In an auction where we've committed to a certain level and the opps interfere (including double), pass is generally more encouraging than bidding to the forced the level.  A common example is a cuebid (raise) being doubled, then rebidding our trump suit.
+		\item We ignore most doubles by the opponent, bidding retains their meaning.  This does not apply to 1-level suit opening bids.
+		\item Minimum responses to opening bids: while we pass \di1 freely up to 9 HCP, we follow more standard approaches to responding to 1M: respond with an Ace, a King and a 5 count or any 6 count.  Responding to 2m is a little different, passing is quite possible with 8 or so points, especially with no fit.  Even 10 or 11 counts are possible over \di2.
+	\end{itemize}	
+	
+	\section{Relays}
+	
+	\subsection{TaJ}
+	TaJ relay as it currently exists.  Used in both \cl1 auctions and 1M--[raise] auctions.
+	
+	\begin{destable}
+		Special & In auctions where Responder is unlimited, first step shows extra values.  Next step repeats TaJ and mirrors the limited relay. \\
+		+1 & \shape{54xx} Relay for second suit LMH, then shape NLH.  Immediately ``zooming'' past the second suit LMH relay shows LMH void and \shape{5440}\\
+		+2 & \shape{55xx} or better.  Secondary suit is always equal or shorter.  Relay for second suit LMH, then shortness LHB.\\
+		+3 & \shape{64xx}.  Primary suit can be longer, secondary always 4.  Relay for second suit LMH, then shortness LHB.\\
+		+4 & 6+ card suit with shortness, denies 4 card side suit.  Relay for short suit LMH.\\
+		+5 & \shape{5332}\\
+		+6 & \shape{6322} or \shape{7222}.  This may also explode into further descriptive items, such as cuebids.  \\
+	\end{destable}
+	
+	If shape relays have completed and the auction is below 3NT, the next step is Optional Key Card (OKC).  Over OKC, the OKC responder bids the first step if their hand is poor in context for slam, otherwise responds 1430 starting with the second step. 	OKC asker may bid +1 over the negative step to ask for RKCs anyway.   
+	
+	This is the same OKC structure we play in 2NT--\sp3--4m auctions, we are just expanding the idea to new auctions.
+	
+	We have decided to \textbf{never} drop the 5332 step in TaJ, even when it might make sense.  This keeps things clean relay wise and also allows for flexible decisions by Responder in some instances.
+	
+\end{document}

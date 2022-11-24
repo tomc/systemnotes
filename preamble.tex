@@ -1,0 +1,28 @@
+\documentclass[letterpaper,11pt,oneside]{memoir}
+\usepackage{tomc} % reduced version of my bridge.sty
+\usepackage{bridgewinners} % taken without modification, but changing things below
+\usepackage{fontspec}
+\usepackage{unicode-math}  % to allow for new fonts in math mode (i.e., suit symbols)
+\usepackage{subfiles} % To have chapters be in separate docs
+\usepackage[margin=.2\textwidth]{geometry}
+\usepackage{graphicx, tikz}
+\usepackage{pgfornament}
+
+\definecolor{clubcolor}{RGB}{23,118,88}
+\definecolor{diamondcolor}{RGB}{249,131,10}
+\newboolean{bwprint}
+\setboolean{bwprint}{true}
+\ifthenelse{\boolean{bwprint}}{%
+	\standardsuitsymbols}{%
+	\colorsuitsymbols}
+
+\setmainfont{DejaVu Serif}
+\setmathfont{DejaVu Serif}
+
+\letterten
+\chapterstyle{ell}
+\renewcommand{\chapterheadstart}{\vspace*{0em}}
+
+\setlength\parindent{0pt} % Ari prefers no indentation for all paragraphs.
+
+\abnormalparskip{1em} % add space between paragraphs for readability

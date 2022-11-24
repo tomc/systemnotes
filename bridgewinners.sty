@@ -1,0 +1,1700 @@
+% modification of grbbridge: a package of LaTeX macros for typesetting bridge
+%
+% Experiment added 10 December 2013: ``general auction'', ``bidprob'', support for ``all pass''
+
+% Version 2.1.1, released 05 September 2013
+% Version 2.1, in development 20 August 2013
+% Version 2.0, released 23 November 2011 
+
+% Version history:
+% 	Version 1 was an experiment from several years ago never released to the public.
+%   Version 2.0 was released 23 November 2011, providing vhand, hhand, auction, the handdiagram environment, and the deal float.
+%	  Version 2.1 was released xx xxxx, enhancing vhand, and providing the ability to display several vhands with referenceable headers.
+%   Version 2.1.1 improved alignment of North, table marker, and South in hand diagrams.
+%   Version 2.2 added support for auctions that don't end in ``pass pass pass''; displaying single suit combinations; different spacing options in inline and hand diagrams; reimplemented the show/hide compass routine in \handdiagram.
+
+\RequirePackage{noindentafter}%This needs to be above boolexpr
+\RequirePackage{tabulary}
+\RequirePackage{array}
+\RequirePackage{ifthen} %required for BW
+\RequirePackage{xstring} %required for BW
+\RequirePackage{color}
+\RequirePackage{kpfonts} %needed for good suit symbols
+\RequirePackage{boolexpr,pdftexcmds} %required for suitsymbols
+\RequirePackage{latexsym}
+\RequirePackage{changepage} %for adjusting margins in environments
+\RequirePackage{mathptmx} %Sets Times at default font and math font
+\RequirePackage{tabularx}
+\RequirePackage{needspace}
+\RequirePackage{forloop}
+
+
+
+\ProvidesPackage{bridgewinners}
+
+
+
+
+
+%These boolean flags can customize how hands are displayed
+\newboolean{letterten}
+\newboolean{leadingspace}
+\newboolean{betweencards}
+\newboolean{nolinebreak}
+\setboolean{letterten}{true}
+\setboolean{leadingspace}{false}
+\setboolean{betweencards}{false}
+\setboolean{nolinebreak}{false}
+\newcommand{\voidsymbol}{---}
+%New in v2.2: we keep track of handdiagram vs. inline boolean choices.
+\newboolean{hdsettings}
+\newboolean{hdletterten}
+\newboolean{hdleadingspace}
+\newboolean{hdbetweencards}
+\newboolean{oldletterten}
+\newboolean{oldleadingspace}
+\newboolean{oldbetweencards}
+\setboolean{hdsettings}{false}
+\setboolean{hdletterten}{true}
+\setboolean{hdleadingspace}{true}
+\setboolean{hdbetweencards}{true}
+
+
+%used to differentiate a card from a singleton in a hand
+\newboolean{possiblecard}
+\setboolean{possiblecard}{true}
+
+\newboolean{card}
+\setboolean{card}{false}
+
+\newboolean{compasshide}
+\newcommand{\hidecompass}{\setboolean{compasshide}{true}}
+\newcommand{\showcompass}{\setboolean{compasshide}{false}}
+
+\showcompass
+
+\newcommand{\spacecards}{\setboolean{betweencards}{true}\setboolean{hdbetweencards}{true}}
+\newcommand{\nospacecards}{\setboolean{betweencards}{false}\setboolean{hdbetweencards}{false}}
+
+\newcommand{\leadingspace}{\setboolean{leadingspace}{true}\setboolean{hdleadingspace}{true}}
+\newcommand{\noleadingspace}{\setboolean{leadingspace}{false}\setboolean{hdleadingspace}{false}}
+
+\newcommand{\hdspace}{\setboolean{hdsettings}{true}\setboolean{hdbetweencards}{true}\setboolean{hdleadingspace}{true}}
+
+\newcommand{\tenvar}{T}
+
+\newcommand{\letterten}{%
+\setboolean{letterten}{true}%
+\setboolean{hdletterten}{true}%
+\renewcommand{\tenvar}{T}}
+
+\newcommand{\numberten}{%
+\setboolean{letterten}{false}%
+\setboolean{hdletterten}{false}%
+\renewcommand{\tenvar}{10}}
+
+\newboolean{uholdspace}
+\setboolean{uholdspace}{false}
+
+
+\newlength{\defaultvspace}
+\setlength{\defaultvspace}{11pt}
+
+
+%These are used in formatone suit.
+\newcounter{formatcounter}
+%\newcommand{\tempformat}
+\newlength{\cardspace}
+\setlength{\cardspace}{.1em}
+\newlength{\hdcardspace}
+\setlength{\hdcardspace}{.3em}
+\newlength{\oldcardspace}
+
+\newlength{\leadspace}
+\setlength{\leadspace}{.2em}
+\newlength{\hdleadspace}
+\setlength{\hdleadspace}{.3em}
+
+%space placed before and after suit symbol when betweencards is true.
+\newlength{\symbolspace}
+\setlength{\symbolspace}{.5\leadspace}
+
+
+\newboolean{toolong}
+\setboolean{toolong}{false}
+\newboolean{needtoshrink}
+\setboolean{needtoshrink}{false}
+
+\newboolean{countcheck}%for checking for 13 cards
+\setboolean{countcheck}{false}
+%################################################################################
+%SUIT SYMBOL STUFF
+
+\newcommand{\clubsymbol}{{\scriptsize\raisebox{0.14em}{\ensuremath{\clubsuit}}}}%
+\newcommand{\diamondsymbol}{{\scriptsize\raisebox{0.16em}{\ensuremath{\diamondsuit}}}}%
+\newcommand{\heartsymbol}{{\scriptsize\raisebox{0.1em}{\ensuremath{\heartsuit}}}}%
+\newcommand{\spadesymbol}{{\scriptsize\raisebox{0.13em}{\ensuremath{\spadesuit}}}}%
+
+%\newcommand{\breakerclubsymbol}{\clubsymbol}%
+%\newcommand{\breakerdiamondsymbol}{\diamondsymbol}%
+%\newcommand{\breakerheartsymbol}{\heartsymbol}%
+%\newcommand{\breakerspadesymbol}{\spadesymbol}%
+
+%\filledsuitsymbols uses a filled in heart and diamond suit. Requires the kpfonts package.
+\newcommand{\filledsuitsymbols}{%
+\renewcommand{\clubsymbol}{\hspace{.04em}{\scriptsize\raisebox{0.14em}{\ensuremath{\clubsuit}}}\hspace{.02934em}}
+\renewcommand{\diamondsymbol}{\hspace{.04em}\raisebox{0.07em}{\ensuremath{\vardiamondsuit}}\hspace{.03801em}}
+\renewcommand{\heartsymbol}{\raisebox{0.07em}{\ensuremath{\varheartsuit}}}
+\renewcommand{\spadesymbol}{\hspace{0.03934em}{\scriptsize\raisebox{0.16em}{\ensuremath{\spadesuit}}}\hspace{0.03em}}}
+%
+%\renewcommand{\breakerclubsymbol}{{\scriptsize\raisebox{0.11em}{\ensuremath{\clubsuit}}}}%
+%\renewcommand{\breakerdiamondsymbol}{\raisebox{0.039em}{\ensuremath{\vardiamondsuit}}}%
+%\renewcommand{\breakerheartsymbol}{\ensuremath{\varheartsuit}}%
+%\renewcommand{\breakerspadesymbol}{{\scriptsize\raisebox{0.12em}{\ensuremath{\spadesuit}}}}}
+
+%\colorsuitsymbols colors the suit symbols. Default is black, red, orange, gray. Requires kpfonts pacakge and [usenames,dvipsnames]{color}
+\definecolor{clubcolor}{gray}{0.3}
+\definecolor{heartcolor}{RGB}{247,7,7}
+\definecolor{diamondcolor}{RGB}{250,94,10}
+\definecolor{spadecolor}{gray}{0}
+
+\newcommand{\colorsuitsymbols}{%
+\renewcommand{\clubsymbol}{\hspace{.04em}{\color{clubcolor}{\scriptsize\raisebox{0.14em}{\ensuremath{\clubsuit}}}}\hspace{.02934em}}
+\renewcommand{\diamondsymbol}{\hspace{.04em}{\color{diamondcolor}\raisebox{0.07em}{\ensuremath{\vardiamondsuit}}}\hspace{.03801em}}
+\renewcommand{\heartsymbol}{{\color{heartcolor}\raisebox{0.07em}{\ensuremath{\varheartsuit}}}}
+\renewcommand{\spadesymbol}{\hspace{0.03934em}{\color{spadecolor}{\scriptsize\raisebox{0.16em}{\ensuremath{\spadesuit}}}}\hspace{0.03em}}}
+%\renewcommand{\breakerclubsymbol}{{\color{clubcolor}{\scriptsize\raisebox{0.09em}{{\ensuremath{\clubsuit}}}}}}%
+%\renewcommand{\breakerdiamondsymbol}{{\color{diamondcolor}{\raisebox{0.03em}{\ensuremath{\vardiamondsuit}}}}}%
+%\renewcommand{\breakerheartsymbol}{{\color{heartcolor}{\ensuremath{\varheartsuit}}}}%
+%\renewcommand{\breakerspadesymbol}{{\color{spadecolor}{\scriptsize\raisebox{0.1em}{{\ensuremath{\spadesuit}}}}}}}
+
+\newcommand{\standardsuitsymbols}{%
+% \renewcommand{\clubsymbol}{{\scriptsize\raisebox{0.14em}{\ensuremath{\clubsuit}}}}  % Orig
+% \renewcommand{\diamondsymbol}{{\scriptsize\raisebox{0.16em}{\ensuremath{\diamondsuit}}}} % Orig
+% \renewcommand{\heartsymbol}{{\scriptsize\raisebox{0.1em}{\ensuremath{\heartsuit}}}} % Orig
+% \renewcommand{\spadesymbol}{{\scriptsize\raisebox{0.13em}{\ensuremath{\spadesuit}}}}} % Orig
+\renewcommand{\clubsymbol}{\ensuremath{\clubsuit}} % Remove resizing
+\renewcommand{\diamondsymbol}{\ensuremath{\diamondsuit}}
+\renewcommand{\heartsymbol}{\ensuremath{\heartsuit}}
+\renewcommand{\spadesymbol}{\ensuremath{\spadesuit}}}
+%\renewcommand{\breakerclubsymbol}{{\scriptsize{\ensuremath{\clubsuit}}}}
+%\renewcommand{\breakerdiamondsymbol}{{\scriptsize{\ensuremath{\diamondsuit}}}}
+%\renewcommand{\breakerheartsymbol}{{\scriptsize{\ensuremath{\heartsuit}}}}
+%\renewcommand{\breakerspadesymbol}{{\scriptsize{\ensuremath{\spadesuit}}}}}
+
+
+%The default is colored suit symbols
+\colorsuitsymbols
+
+%#########################################################################################
+%BIDS AND CARDS
+
+% BIDS    WTF was \sp before I did this?!
+
+\newcommand{\cl}[1]{\mbox{#1\hspace{0.07em}\clubsymbol}}%
+\newcommand{\di}[1]{\mbox{#1\hspace{0.07em}\diamondsymbol}}%
+\newcommand{\he}[1]{\mbox{#1\hspace{0.07em}\heartsymbol}}%
+\renewcommand{\sp}[1]{\mbox{#1\hspace{0.07em}\spadesymbol}}%
+
+% Holdings: display a set of cards
+\newcommand{\clubs}[1]{%
+  \cardprep{#1}%
+  \ifthenelse{\boolean{toolong}}{%
+  \clubsymbol\hspace{0.1em}{\footnotesize\formatonesuit{\tstring}}%
+  }{%
+  \ifthenelse{\boolean{leadingspace}}{%
+    \ifthenelse{\boolean{card}}{\mbox{\clubsymbol\hspace{0.1em}\formatonesuit{\tstring}\punctuation}}{%
+     \hspace{\symbolspace}\mbox{\clubsymbol\hspace{0.1em}\formatonesuit{\tstring}\punctuation}\hspace{\symbolspace}}}{%
+   \mbox{\clubsymbol\hspace{0.1em}\formatonesuit{\tstring}\punctuation}}}}%
+\newcommand{\diamonds}[1]{%
+  \cardprep{#1}%
+  \ifthenelse{\boolean{toolong}}{%
+  \diamondsymbol\hspace{0.1em}{\footnotesize\formatonesuit{\tstring}}%
+  }{%
+  \ifthenelse{\boolean{leadingspace}}{%
+    \ifthenelse{\boolean{card}}{\mbox{\diamondsymbol\hspace{0.1em}\formatonesuit{\tstring}\punctuation}}{%
+     \hspace{\symbolspace}\mbox{\diamondsymbol\hspace{0.1em}\formatonesuit{\tstring}\punctuation}\hspace{\symbolspace}}}{%
+   \mbox{\diamondsymbol\hspace{0.1em}\formatonesuit{\tstring}\punctuation}}}}%
+\newcommand{\hearts}[1]{%
+  \cardprep{#1}%
+  \ifthenelse{\boolean{toolong}}{%
+  \heartsymbol\hspace{0.1em}{\footnotesize\formatonesuit{\tstring}}%
+  }{%
+  \ifthenelse{\boolean{leadingspace}}{%
+    \ifthenelse{\boolean{card}}{\mbox{\heartsymbol\hspace{0.1em}\formatonesuit{\tstring}\punctuation}}{%
+     \hspace{\symbolspace}\mbox{\heartsymbol\hspace{0.1em}\formatonesuit{\tstring}\punctuation}\hspace{\symbolspace}}}{%
+   \mbox{\heartsymbol\hspace{0.1em}\formatonesuit{\tstring}\punctuation}}}}%
+\newcommand{\spades}[1]{%
+  \cardprep{#1}%
+  \ifthenelse{\boolean{toolong}}{%
+  \spadesymbol\hspace{0.1em}{\footnotesize\formatonesuit{\tstring}}%
+  }{%
+  \ifthenelse{\boolean{leadingspace}}{%
+  \ifthenelse{\boolean{card}}{\mbox{\spadesymbol\hspace{0.1em}\formatonesuit{\tstring}\punctuation}}{%
+     \hspace{\symbolspace}\mbox{\spadesymbol\hspace{0.1em}\formatonesuit{\tstring}\punctuation}\hspace{\symbolspace}}}{%
+   \mbox{\spadesymbol\hspace{0.1em}\formatonesuit{\tstring}\punctuation}}}}%
+
+
+
+   
+   
+%For holdings without a suit specified, so they will be formatted the same way.
+\newcommand{\nosuit}[1]{\cardprep{#1}%
+\mbox{\formatonesuit{\tstring}\punctuation}}
+
+%#######################################################################################
+%BEHIND THE SCENES FUNCTIONS
+%parsesuit splits up a string into 4 suits, which we can now do as we please with
+\newcommand{\parsesuit}[1]{%
+\StrBefore{#1}{,}[\raws]%
+\StrBetween[1,2]{#1}{,}{,}[\rawh]%
+\StrBetween[2,3]{#1}{,}{,}[\rawd]%
+\StrBehind[3]{#1}{,}[\rawc]%
+}
+
+\newcommand{\cardprep}[1]{%Fixes capitalization errors, removes punctuation, tests length.
+%First we pretty everything up by capitalizing honors and uncapitalizing Xs
+\StrSubstitute{#1}{a}{A}[\tstring]%
+\StrSubstitute{\tstring}{k}{K}[\tstring]%
+\StrSubstitute{\tstring}{q}{Q}[\tstring]%
+\StrSubstitute{\tstring}{j}{J}[\tstring]%
+\StrSubstitute{\tstring}{t}{T}[\tstring]%
+\StrSubstitute{\tstring}{X}{x}[\tstring]%
+\StrSubstitute{\tstring}{10}{T}[\tstring]% Initially we convert 10 to T, to make the next check for a single character work
+%
+\StrRight{\tstring}{1}[\punctuation]%Takes the last character to see if it is a punctuation mark.
+%
+\IfEqCase{\punctuation}{%
+{,}{%
+\StrGobbleRight{\tstring}{1}[\sanspunctuation]%
+\renewcommand{\tstring}{\sanspunctuation}}%
+{.}{%
+\StrGobbleRight{\tstring}{1}[\sanspunctuation]%
+\renewcommand{\tstring}{\sanspunctuation}}%
+{;}{%
+\StrGobbleRight{\tstring}{1}[\sanspunctuation]%
+\renewcommand{\tstring}{\sanspunctuation}}%
+{:}{%
+\StrGobbleRight{\tstring}{1}[\sanspunctuation]%
+\renewcommand{\tstring}{\sanspunctuation}}%
+{?}{%
+\StrGobbleRight{\tstring}{1}[\sanspunctuation]%
+\renewcommand{\tstring}{\sanspunctuation}}%
+}[\renewcommand{\punctuation}{}]%
+%
+\StrLen{\tstring}[\suitlength]% Checks the length of the string
+%
+\ifthenelse{\suitlength = 1 \AND \boolean{possiblecard}}{%If it's one card AND it isn't part of a hand diagram
+\setboolean{card}{true}}{\setboolean{card}{false}}%
+}
+
+
+%FORMATONESUIT applies betweencards, leadingspace, and letterten to one suit at a time.
+\newcommand{\formatonesuit}[1]{%
+\IfEq{\suitlength}{1}{% If it's just one card
+%The card boolean distinguishes between a card and a singleton in a diagram. A card gets no leading space, a singleton does (if leadingspace is true)
+ \ifthenelse{\boolean{card}}{}{\ifthenelse{\boolean{leadingspace}}{\hspace{\cardspace}}{}}%
+  \IfEq{\tstring}{T}{% If it's a ten
+    \ifthenelse{\boolean{letterten}}{T}{10}}{\tstring}}{%Now we look at multiple-card holdings
+\ifthenelse{\boolean{leadingspace}}{\hspace{\leadspace}}{}%First add a space if leadingspace is true
+\IfEq{\tstring}{}{\voidsymbol}{}%Next check if it's a void
+\ifthenelse{\boolean{betweencards}}{%Next check if cards should be spaced.
+%This goes character by character, printing it and then adding a space, stored in \cardspace. It then removes the first character of the string and repeats. 
+  \ifthenelse{\boolean{letterten}}{%10s have been converted to Ts at this point, so if we want a T, we don't have to do any checking, we just print the characters.
+    \forloop{formatcounter}{1}{\value{formatcounter} < \suitlength}{%
+      \StrChar{\tstring}{1}\hspace{\cardspace}%
+      \StrGobbleLeft{\tstring}{1}[\tempformat]%
+      \renewcommand{\tstring}{\tempformat}}%
+      \tstring}{%The last character shouldn't have a space, so it goes outside the loop.
+      %When we want a 10, we have to check if the character is a T, and if so print a 10, otherwise print the character.
+    \forloop{formatcounter}{1}{\value{formatcounter} < \suitlength}{%
+      \StrChar{\tstring}{1}[\tempchar]%
+      \IfEq{\tempchar}{T}{10\hspace{\cardspace}}{\tempchar\hspace{\cardspace}}%
+      \StrGobbleLeft{\tstring}{1}[\tempformat]%
+      \renewcommand{\tstring}{\tempformat}}%
+   \IfEq{\tstring}{T}{10}{\tstring}}%
+}{%If no space b/n cards, we just need to substitute 10 for T if letterten is false.
+ \ifthenelse{\boolean{letterten}}{\tstring}{\StrSubstitute{\tstring}{T}{10}}
+}}}
+
+%HHAND
+%hhand: intended for routine use in inline text. Allows line breaks only between suits.
+\newcommand{\hhand}[1]{\parsesuit{#1}%
+\setboolean{possiblecard}{false}%
+\ifthenelse{\boolean{nolinebreak}}{\mbox{\spades{\raws} \hearts{\rawh}
+	\diamonds{\rawd} \clubs{\rawc}}}
+{\spades{\raws} \hearts{\rawh} \diamonds{\rawd} \clubs{\rawc}}%
+	\setboolean{possiblecard}{true}%
+	}
+
+\newlength{\suitwidth}
+
+\newcounter{countcheckcounter}
+\newcommand{\countchecktemp}
+
+%VHAND
+%vhand: intended for routine use to display a small number of single hands, with no fancy formatting around them.
+%This will become an ELEMENT of a whole-hand or two-hands environment.
+%In version 2.1, an optional argument was added to vhand to enable placing a label above a single hand.
+\newcommand{\vhand}[2][NoShow]{\parsesuit{#2}%
+\setboolean{possiblecard}{false}%
+\begin{tabular}{@{}l}%
+\IfEq{#1}{NoShow}{}{\textbf{#1}\\}%
+\ifthenelse{\boolean{needtoshrink}}{%
+\settowidth{\suitwidth}{\spades{\raws}}%
+\ifthenelse{\lengthtest{\suitwidth>6.5em}}{%
+\setboolean{toolong}{true}}{\setboolean{toolong}{false}}%
+\spades{\raws}\\%
+\settowidth{\suitwidth}{\hearts{\rawh}}%
+\ifthenelse{\lengthtest{\suitwidth>6.5em}}{%
+\setboolean{toolong}{true}}{\setboolean{toolong}{false}}%
+\hearts{\rawh}\\%
+\settowidth{\suitwidth}{\diamonds{\rawd}}%
+\ifthenelse{\lengthtest{\suitwidth>6.5em}}{%
+\setboolean{toolong}{true}}{\setboolean{toolong}{false}}%
+\diamonds{\rawd}\\%
+\settowidth{\suitwidth}{\clubs{\rawc}}%
+\ifthenelse{\lengthtest{\suitwidth>6.5em}}{%
+\setboolean{toolong}{true}}{\setboolean{toolong}{false}}%
+\clubs{\rawc}}{%
+\spades{\raws}\\%
+\hearts{\rawh}\\%
+\diamonds{\rawd}\\%
+\clubs{\rawc}}%
+\end{tabular}%
+\ifthenelse{\boolean{countcheck}}{%If set to do so, this counts the cards and makes sure there are 13
+\StrLen{\raws}[\countchecktemp]%
+\addtocounter{countcheckcounter}{\countchecktemp}%
+\StrLen{\rawh}[\countchecktemp]%
+\addtocounter{countcheckcounter}{\countchecktemp}%
+\StrLen{\rawd}[\countchecktemp]%
+\addtocounter{countcheckcounter}{\countchecktemp}%
+\StrLen{\rawc}[\countchecktemp]%
+\addtocounter{countcheckcounter}{\countchecktemp}%
+\ifthenelse{\value{countcheckcounter}=13}{}{{\color{red} \huge ERROR. \thecountcheckcounter{} cards.}}
+\setcounter{countcheckcounter}{0}%
+}{}%
+\setboolean{possiblecard}{true}}
+
+
+%COMMANDS FOR HANDDIAGRAM
+\newcommand{\north}[2][NoShow]{\def \northcards {#2} \def \northcardlabel {#1} }
+\newcommand{\south}[2][NoShow]{\def \southcards {#2} \def \southcardlabel {#1} }
+\newcommand{\east}[2][NoShow]{\def \eastcards {#2} \def \eastcardlabel {#1} }
+\newcommand{\west}[2][NoShow]{\def \westcards {#2} \def \westcardlabel {#1} }
+
+\newcommand{\vul}[1]{\IfEqCase{#1}{%
+{none}{\def \vulstring {None vul.}}
+{no}{\def \vulstring {None vul.}}
+{o}{\def \vulstring {None vul.}}
+{n}{\def \vulstring {N-S vul.}}
+{e}{\def \vulstring {E-W vul.}}
+{b}{\def \vulstring {Both vul.}}}}
+\newcommand{\dealer}[1]{\IfEqCase{#1}{%
+{n}{\def \dealerstring {North dealer}}
+{e}{\def \dealerstring {East dealer}}
+{s}{\def \dealerstring {South dealer}}
+{w}{\def \dealerstring {West dealer}}}}
+
+\newcommand{\boardnum}[1]{\IfInteger{#1}{
+\def \boardnumstring {Board #1}%
+\IfEqCase{#1}{%
+{1}{\vul{o}\dealer{n}}
+{2}{\vul{n}\dealer{e}}
+{3}{\vul{e}\dealer{s}}
+{4}{\vul{b}\dealer{w}}
+{5}{\vul{n}\dealer{n}}
+{6}{\vul{e}\dealer{e}}
+{7}{\vul{b}\dealer{s}}
+{8}{\vul{o}\dealer{w}}
+{9}{\vul{e}\dealer{n}}
+{10}{\vul{b}\dealer{e}}
+{11}{\vul{o}\dealer{s}}
+{12}{\vul{n}\dealer{w}}
+{13}{\vul{b}\dealer{n}}
+{14}{\vul{o}\dealer{e}}
+{15}{\vul{n}\dealer{s}}
+{16}{\vul{e}\dealer{w}}
+{17}{\vul{o}\dealer{n}}
+{18}{\vul{n}\dealer{e}}
+{19}{\vul{e}\dealer{s}}
+{20}{\vul{b}\dealer{w}}
+{21}{\vul{n}\dealer{n}}
+{22}{\vul{e}\dealer{e}}
+{23}{\vul{b}\dealer{s}}
+{24}{\vul{o}\dealer{w}}
+{25}{\vul{e}\dealer{n}}
+{26}{\vul{b}\dealer{e}}
+{27}{\vul{o}\dealer{s}}
+{28}{\vul{n}\dealer{w}}
+{29}{\vul{b}\dealer{n}}
+{30}{\vul{o}\dealer{e}}
+{31}{\vul{n}\dealer{s}}
+{32}{\vul{e}\dealer{w}}
+{33}{\vul{o}\dealer{n}}
+{34}{\vul{n}\dealer{e}}
+{35}{\vul{e}\dealer{s}}
+{36}{\vul{b}\dealer{w}}}}{\def \boardnumstring {#1}}}
+
+
+
+
+%creates variables for handdiagram spacing.
+\newlength{\diagramhspace}
+\newlength{\diagramvspace}
+
+\setlength{\diagramhspace}{1.3in}
+\setlength{\diagramvspace}{11pt}
+
+\newlength{\diagrambottomspace}
+
+\newlength{\compasswidth}
+\setlength{\compasswidth}{6em}
+
+
+\newcommand*{\totalspades}{}
+\newcommand{\totalhearts}{}
+\newcommand{\totaldiamonds}{}
+\newcommand{\totalclubs}{}
+\newcommand{\snorth}{}
+\newcommand{\hnorth}{}
+\newcommand{\dnorth}{}
+\newcommand{\cnorth}{}
+
+%################################################################################################
+%HANDDIAGRAM ENVIRONMENT
+
+\newenvironment{handdiagram}[1][\diagramvspace]%
+{\vspace{\diagramvspace}%
+\setboolean{possiblecard}{false}%
+\setlength{\diagrambottomspace}{#1}%
+\def \northcards {NoShow}%
+\def \westcards {NoShow}%
+\def \eastcards {NoShow}%
+\def \southcards {NoShow}%
+\def \dealerstring {NoShow}%
+\def \vulstring {NoShow}%
+\def \boardnumstring {NoShow}%
+%New in v2.2, it checks when opening the environment to see if it needs to change the display settings:
+\ifthenelse{\boolean{hdsettings}}{%
+\ifthenelse{\boolean{hdbetweencards}}{\setlength{\compasswidth}{6em}}{\ifthenelse{\boolean{hdleadingspace}}{\setlength{\compasswidth}{4em}}{\setlength{\compasswidth}{3.5em}}}
+\ifthenelse{\boolean{hdletterten}}{\setboolean{letterten}{true}}{\setboolean{letterten}{false}}
+\ifthenelse{\boolean{hdbetweencards}}{\setlength{\cardspace}{\hdcardspace}\setboolean{betweencards}{true}}{\setboolean{betweencards}{false}}
+\ifthenelse{\boolean{hdleadingspace}}{\setlength{\leadspace}{\hdleadspace}\setboolean{leadingspace}{true}}{\setboolean{leadingspace}{false}}}{%
+\ifthenelse{\boolean{betweencards}}{\setlength{\compasswidth}{5em}}{\ifthenelse{\boolean{leadingspace}}{\setlength{\compasswidth}{4em}}{\setlength{\compasswidth}{3.5em}}}}
+}%Right now it doesn't do anything fancy at the start, but at the END of the environment, it processes all the commands it has received:
+{%
+\par\noindent
+\begin{adjustwidth}{0em}{-6em}
+\begin{center}
+\renewcommand{\arraystretch}{1}
+\begin{tabularx}{.8\linewidth}{X@{}X@{}X}
+%Upper left: info box
+\IfEq{\boardnumstring\dealerstring\vulstring}{NoShowNoShowNoShow}{}{%
+\IfEq{\westcards}{NoShow}{%
+\begin{tabular}{lll}
+\IfEq{\boardnumstring}{NoShow}{}{&&\boardnumstring\\}%
+\IfEq{\dealerstring}{NoShow}{}{&&\dealerstring\\}%
+\IfEq{\vulstring}{NoShow}{}{&&\vulstring\\}%
+\end{tabular}}{%
+\begin{tabular}{@{}l}
+\IfEq{\boardnumstring}{NoShow}{}{\boardnumstring\\}%
+\IfEq{\dealerstring}{NoShow}{}{\dealerstring\\}%
+\IfEq{\vulstring}{NoShow}{}{\vulstring\\}%
+\end{tabular}}}%
+& 
+%Top center: North
+\IfEq{\northcards}{NoShow}{}{\vhand[\northcardlabel]{\northcards}}%
+&
+\\
+%Middle left: West
+\IfEq{\westcards}{NoShow}{}{\hspace{2em}\vhand[\westcardlabel]{\westcards}}%
+&
+%Center: Hand diagram\
+\ifthenelse{\boolean{compasshide}}{}{
+%\IfEq{\westcards\eastcards}{NoShowNoShow}{}%Originally I turned on compass unless it was just N-S
+%Now I'm only turning on compass when all 4 hands are present
+\ifthenelse{\equal{\westcards}{NoShow}\OR\equal{\eastcards}{NoShow}\OR\equal{\southcards}{NoShow}\OR\equal{\northcards}{NoShow}}{}{%
+\setlength{\tabcolsep}{.085\compasswidth}
+\footnotesize
+\setlength{\extrarowheight}{3pt}
+%\begin{tabular}{|b{1em}b{1em}b{1em}|}
+\hspace{-.12\compasswidth}
+\begin{tabulary}{\compasswidth}{|lCl|}
+\firsthline 
+&\IfEq{\northcards}{NoShow}{ }{N}&\\
+\IfEq{\westcards}{NoShow}{ }{W}& &\IfEq{\eastcards}{NoShow}{ }{E}\\
+&\IfEq{\southcards}{NoShow}{ }{S}&\\[4pt]
+\lasthline
+\end{tabulary}
+\vspace{.75\defaultvspace}
+}}
+&
+%Middle right: East
+%7/13/15 Added vspaces here and for the West hand, and got rid of the needtoshrink stuff.
+\IfEq{\eastcards}{NoShow}{}{\setboolean{needtoshrink}{false}\hspace{-2em}\vhand[\eastcardlabel]{\eastcards}\setboolean{needtoshrink}{false}}%
+\\
+%Bottom left blank
+& 
+%Bottom center: South
+\IfEq{\southcards}{NoShow}{}{\vhand[\southcardlabel]{\southcards}}%
+& 
+%Bottom right blank
+\\
+\end{tabularx}%
+\end{center}%
+\end{adjustwidth}%
+%\ifthenelse{\boolean{countcheck}}{%
+%\IfEq{\eastcards}{NoShow}{}{\IfEq{\westcards}{NoShow}{}{\IfEq{\northcards}{NoShow}{}{\IfEq{\southcards}{NoShow}{}{%
+%\renewcommand{\totalspades}{\StrBefore{\northcards}{,}\StrBefore{\southcards}{,}\StrBefore{\eastcards}{,}\StrBefore{\westcards}{,}}
+%\renewcommand{\totalhearts}{\StrBetween[1,2]{\northcards}{,}{,}\StrBetween[1,2]{\southcards}{,}{,}\StrBetween[1,2]{\eastcards}{,}{,}\StrBetween[1,2]{\westcards}{,}{,}}
+%\renewcommand{\totaldiamonds}{\StrBetween[2,3]{\northcards}{,}{,}\StrBetween[2,3]{\southcards}{,}{,}\StrBetween[2,3]{\eastcards}{,}{,}\StrBetween[2,3]{\westcards}{,}{,}}
+%\renewcommand{\totalclubs}{\StrBehind[3]{\northcards}{,}\StrBehind[3]{\southcards}{,}\StrBehind[3]{\eastcards}{,}\StrBehind[3]{\westcards}{,}}
+%
+%\totalspades\\
+%\totalhearts\\
+%\totaldiamonds\\
+%\totalclubs\\
+
+%}}}}}{}%
+\setboolean{possiblecard}{true}%
+\vspace{\diagrambottomspace}}
+
+
+%####################################################################################################
+%AUCTION: a command to automatically format an auction into a nice table
+
+\newcommand{\dblstring}{Double}
+\newcommand{\rdblstring}{Rdbl}
+\newcommand{\auctionending}{,p,p,p}
+
+
+%creates variables for auction indentation and spacing
+\newlength{\auctionhspace}
+\setlength{\auctionhspace}{1.6in}
+\newlength{\auctionvspacetop}
+\setlength{\auctionvspacetop}{11pt}
+\newlength{\auctionvspacebottom}
+\setlength{\auctionvspacebottom}{11pt}
+
+
+
+%Stuff Greg did to eliminate extra line in the table when last bid was in right column
+\newcounter{auctionLoopCounter}
+\newcounter{bwListLength}
+
+\newcommand*{\@bwLength}[1]{%
+	\setcounter{bwListLength}{0}%
+	\@for\@bullshit:=#1\do{\stepcounter{bwListLength}}}
+
+	
+%GENAUCTION
+	
+\newcommand{\genauction}[3][NoShow]{%
+\gdef \seat@counter {0}%GDEF not DEF is important, otherwise it can't see the counter inside-vs-outside the for loop
+\noindent \begin{tabular}{@{}p{3.8em}p{3.8em}p{3.8em}p{3.8em}}%
+West&North&East&South\\%
+\IfEq{#1}{NoShow}{}{%
+\@for \thislabel:=#1 \do {\textit{\thislabel} \incrementcounter}%
+\IfEq{\seat@counter}{0}{}{\gdef seat@counter {0} \\}%
+}%
+\edef\long@auction{#2#3}%
+\@bwLength{\long@auction}%
+\setcounter{auctionLoopCounter}{1}%
+\@for \thisbid:=\long@auction  \do {\printable{\thisbid} \ifnum\value{auctionLoopCounter} < \value{bwListLength}\incrementcounter\else\relax\fi\stepcounter{auctionLoopCounter} }%
+\end{tabular}%
+}
+
+% Copy and slightly modify genauction to create comp bidding modeled after 
+% orauction
+
+\newcommand{\gencomp}[3][NoShow]{%
+	\noindent%
+	\gdef \seat@counter {0}
+	\hspace{.2\auctionhspace}
+% This was tabularx, but it created a weird bug that added a \\ after the 2nd element for reasons 
+% that aren't clear. Replacing it back with tabular fixed it, but then I needed to guesstimate
+% the column sizes. 6.8em seems fine, but perhaps that might not be true if the page size changes.
+%
+% tabular* allows for \textwidth, but seems cumbersome and recommended to avoid.
+%
+% Reading more, it seems that tabularx can add a line break when it thinks it needs to do so,
+% which seems to break what I was trying to do.
+%
+		\begin{tabular}{@{}p{6.8em}p{6.8em}p{6.8em}p{6.8em}@{}}
+			Opener&Overcaller&Responder&Advancer\\%
+		\IfEq{#1}{NoShow}{}{%
+			\@for \thislabel:=#1 \do {\textit{\thislabel} \incrementcounter}%
+			\IfEq{\seat@counter}{0}{}{\gdef seat@counter {0} \\}%
+		}%
+		\edef\long@auction{#2#3}%
+		\@bwLength{\long@auction}%
+		\setcounter{auctionLoopCounter}{1}%
+		\@for \thisbid:=\long@auction  \do {\printable{\thisbid} \ifnum\value{auctionLoopCounter} < \value{bwListLength}\incrementcounter\else\relax\fi\stepcounter{auctionLoopCounter} }%
+		\end{tabular}
+}
+
+
+%compauct added by TomC
+\newcommand{\compauct}[2][NoShow]{%
+	% vspace and hspace removed to properly create boxes
+	% most of the logic is in \gencomp
+	\par\noindent%
+	\gencomp[#1]{#2}{,?}%
+	\par\@afterindentfalse\@afterheading%       preventing indent afterwards
+}
+
+%AUCTION
+
+\newcommand{\auction}[2][NoShow]{%
+\vspace{\auctionvspacetop}%
+\par\noindent%
+\vspace{\auctionvspacebottom}%
+\hspace{\auctionhspace}%
+\genauction[#1]{#2}{\auctionending}%
+\par\@afterindentfalse\@afterheading%   preventing indent afterwards
+}
+
+
+%BIDPROB
+\newcommand{\bidprob}[2][NoShow]{%
+\vspace{\auctionvspacetop}%
+\par\noindent%
+\vspace{\auctionvspacebottom}%
+\hspace{\auctionhspace}%
+\genauction[#1]{#2}{,?}%
+\par\@afterindentfalse\@afterheading%       preventing indent afterwards
+}
+
+
+%AUCTIONPART
+\newcommand{\auctionpart}[2][NoShow]{%
+\vspace{\auctionvspacetop}%
+\par\noindent%
+\vspace{\auctionvspacebottom}%
+\hspace{\auctionhspace}%
+\genauction[#1]{#2}{}%
+\par\@afterindentfalse\@afterheading%           preventing indent afterwards
+}
+
+\newcommand{\incrementcounter}{%
+\IfStrEqCase{\seat@counter}{{0}{%
+\gdef \seat@counter {1} &}{1}{%
+\gdef \seat@counter {2} &}{2}{%
+\gdef \seat@counter {3} &}{3}{%
+\gdef \seat@counter {0} \\}}%
+}
+
+
+%AUCTIONPLUS ENVIRONMENT
+%auctionplus environment for auctions with explanations and/or opening leads
+
+\newenvironment{auctionplus}{%
+\par\noindent%
+\setlength{\topsep}{0pt}%
+\setlength{\partopsep}{0pt}%
+%\begin{center}%
+\begin{minipage}{\textwidth}%
+\setlength{\parindent}{0pt}%
+\setlength{\auctionvspacebottom}{4pt}%
+\begin{adjustwidth}{\auctionhspace}{0in}%
+\setlength{\auctionhspace}{0pt}%
+}
+{%
+\end{adjustwidth}%
+\end{minipage}%
+%\end{center}%
+\vspace{1.5\auctionvspacetop}%
+}
+\newlength{\ewauctionspace}
+\setlength{\ewauctionspace}{8em}
+
+%NSAUCTION
+%New in v.2.2: two-person auctions, NS or EW:
+\newcommand{\nsauction}[2][NoShow]{%
+\noindent%
+\gdef \seat@counter {0} %GDEF not DEF is important, otherwise it can't see the counter inside-vs-outside the for loop
+\hspace{\auctionhspace}%added by Adam
+\begin{tabular}{@{}p{\ewauctionspace}p{\ewauctionspace}}
+NORTH&SOUTH\\%
+\IfEq{#1}{NoShow}{}{%
+\@for \thislabel:=#1 \do {\textit{\thislabel} \twopersoncounter}%
+\IfEq{\seat@counter}{0}{}{\gdef seat@counter {0} \\}%
+}%
+\@for \thisbid:=#2  \do {\printable{\thisbid} \twopersoncounter }
+\end{tabular}
+}
+
+%EWAUCTION
+\newcommand{\ewauction}[2][NoShow]{%
+\noindent%
+\gdef \seat@counter {0} %GDEF not DEF is important, otherwise it can't see the counter inside-vs-outside the for loop
+\hspace{1.5\auctionhspace}%added by Adam
+\begin{tabular}{@{}p{\ewauctionspace}p{\ewauctionspace}}
+WEST&EAST\\%
+\IfEq{#1}{NoShow}{}{%
+\@for \thislabel:=#1 \do {\textit{\thislabel} \twopersoncounter}%
+\IfEq{\seat@counter}{0}{}{\gdef seat@counter {0} \\}%
+}%
+\@for \thisbid:=#2  \do {\printable{\thisbid} \twopersoncounter }
+\end{tabular}
+}
+
+%ORAUCTION added by TomC for Titles being Opener/Responder
+\newcommand{\orauction}[2][NoShow]{%
+	\par\noindent%
+	\gdef \seat@counter {0} %GDEF not DEF is important, otherwise it can't see the counter inside-vs-outside the for loop
+    \hspace{\auctionhspace}
+	\begin{tabular}{@{}p{\ewauctionspace}p{\ewauctionspace}}
+		OPENER&RESPONDER\\%
+		\IfEq{#1}{NoShow}{}{%
+			\@for \thislabel:=#1 \do {\textit{\thislabel} \twopersoncounter}%
+			\IfEq{\seat@counter}{0}{}{\gdef seat@counter {0} \\}%
+		}%
+		\@for \thisbid:=#2  \do {\printable{\thisbid} \twopersoncounter }
+		? \\
+	\end{tabular}
+	\par\@afterindentfalse\@afterheading%       preventing indent afterwards
+}
+
+\newcommand{\orauctionpart}[2][NoShow]{%
+	\par\noindent%
+	\gdef \seat@counter {0} %GDEF not DEF is important, otherwise it can't see the counter inside-vs-outside the for loop
+	\hspace{\auctionhspace}
+	\begin{tabular}{@{}p{\ewauctionspace}p{\ewauctionspace}}
+		OPENER&RESPONDER\\%
+		\IfEq{#1}{NoShow}{}{%
+			\@for \thislabel:=#1 \do {\textit{\thislabel} \twopersoncounter}%
+			\IfEq{\seat@counter}{0}{}{\gdef seat@counter {0} \\}%
+		}%
+		\@for \thisbid:=#2  \do {\printable{\thisbid} \twopersoncounter }
+		\\
+	\end{tabular}
+	\par\@afterindentfalse\@afterheading%       preventing indent afterwards
+}
+
+\newcommand{\twopersoncounter}{%
+\IfStrEqCase{\seat@counter}{{0}{%
+\gdef \seat@counter {1} &}{1}{%
+\gdef \seat@counter {0} \\}}%
+}
+
+
+%Support for ap=''All Pass'' added in v2.2
+
+
+%PUTTING DASHES IN EMPTY SPACES IN AUCTION
+%Added by AP to put dashes in empty bids before the auction.
+\newboolean{emptybidfill}
+\setboolean{emptybidfill}{true}
+\newcommand{\emptybidsymbol}{~---}
+
+
+%PRINTABLE
+\newcommand{\printable}[1]{%
+\StrLeft{#1}{1}[\first@char]%
+\StrMid{#1}{2}{2}[\second@char]%
+\StrGobbleLeft{#1}{2}[\minus@two]%
+\IfStrEqCase{\first@char}{%
+{}{\ifthenelse{\boolean{emptybidfill}}{\emptybidsymbol}{}}%AP addition
+{d}{\dblstring\second@char\minus@two}
+{p}{Pass\second@char\minus@two}
+{a}{\IfStrEq{\second@char}{p}{All Pass\minus@two}{a\second@char\minus@two}}
+{x}{\IfStrEq{\second@char}{x}{\rdblstring\minus@two}{\dblstring\second@char\minus@two}}
+{1}{\IfStrEqCase{\second@char}{{c}{\cl{1}\minus@two}{d}{\di{1}\minus@two}{h}{\he{1}\minus@two}{s}{\sp{1}\minus@two}{n}{1NT\minus@two}}[#1]}
+{2}{\IfStrEqCase{\second@char}{{c}{\cl{2}\minus@two}{d}{\di{2}\minus@two}{h}{\he{2}\minus@two}{s}{\sp{2}\minus@two}{n}{2NT\minus@two}}[#1]}
+{3}{\IfStrEqCase{\second@char}{{c}{\cl{3}\minus@two}{d}{\di{3}\minus@two}{h}{\he{3}\minus@two}{s}{\sp{3}\minus@two}{n}{3NT\minus@two}}[#1]}
+{4}{\IfStrEqCase{\second@char}{{c}{\cl{4}\minus@two}{d}{\di{4}\minus@two}{h}{\he{4}\minus@two}{s}{\sp{4}\minus@two}{n}{4NT\minus@two}}[#1]}
+{5}{\IfStrEqCase{\second@char}{{c}{\cl{5}\minus@two}{d}{\di{5}\minus@two}{h}{\he{5}\minus@two}{s}{\sp{5}\minus@two}{n}{5NT\minus@two}}[#1]}
+{6}{\IfStrEqCase{\second@char}{{c}{\cl{6}\minus@two}{d}{\di{6}\minus@two}{h}{\he{6}\minus@two}{s}{\sp{6}\minus@two}{n}{6NT\minus@two}}[#1]}
+{7}{\IfStrEqCase{\second@char}{{c}{\cl{7}\minus@two}{d}{\di{7}\minus@two}{h}{\he{7}\minus@two}{s}{\sp{7}\minus@two}{n}{7NT\minus@two}}[#1]}}[#1]}
+
+
+
+
+
+%NEWHANDTYPE???
+%newhandtype: the ability to define new hand types with references, rather than using \vhand repeatedly
+%syntax: \newhandtype{commandname,display text,label format,reset criterion}
+%example \newhandtype{opener}{Opener}{arabic}{section} provides \opener[optional label]{s,h,d,c}, as for \vhand{s,h,d,c}
+
+\newcommand{\newhandtype}[4]{%
+\IfEq{#4}{never}{\newcounter{#1}}{\newcounter{#1}[#4]}%
+\setcounter{#1}{0}%
+\expandafter\newcommand\csname format#1\endcsname {#3}% Stores the kind of formatting in a variable
+\expandafter\renewcommand\csname the#1\endcsname{\expandafter\csname\csname format#1\endcsname\endcsname {#1}}%Formats the references.
+\expandafter\newcommand\csname #1\endcsname [2][GenericLabel]{%
+\expandafter\parsesuit{##2}% --- the doubled # is the key to making this work.
+\begin{tabular}{l}%
+\refstepcounter{#1}%
+%Apply a label if the user requests one.
+%Generating automatic labels causes collisions if the counter gets reset in the next section, so we only provide these if 
+%you set the reset criterion to ``never''.
+\IfEq{##1}{GenericLabel}{\IfEq{#4}{never}{\label{#1\expandafter\csname\csname format#1\endcsname\endcsname {#1}}}{}}{\label{##1}}%
+%\IfEq{##1}{GenericLabel}{\label{#1\expandafter\csname\csname format#1\endcsname\endcsname {#1}}}{}%
+\underline{\textbf{#2 \expandafter\csname\csname format#1\endcsname\endcsname {#1}}}\\
+\spades{\raws}\\%
+\hearts{\rawh}\\%
+\diamonds{\rawd}\\%
+\clubs{\rawc}%
+\end{tabular}}%
+}
+
+
+%
+%
+% New Stuff Adam Did!
+%##############################################################################################################
+%TWO HAND VIEWS
+
+
+
+%DUMMY LEFT
+%Dummyleft if for defensive problems when you are on lead and dummy
+%is on the left. It takes 3 paramaters: [your name]{1}{hand2}
+%[your name] is optional, with a default of "You"
+
+\newcommand{\dummyleft}[3][You]{%
+\vspace{11 pt}
+\noindent\parbox{\linewidth}{%
+\begin{tabular}{cccccc}
+&&&&&\bf Dummy\\
+&&&&&\hhand{#2}\\
+&\bf #1\\
+&\hhand{#3}\\
+\end{tabular}}
+\vspace{3 pt}
+}
+
+
+%DUMMYLEFTV
+%Dummyleftv is the same as dummyleft, but with vertical hands. It takes 3 paramaters: [your name]{hand1}{hand2}
+%[your name] is optional, with a default of "You"
+
+\newcommand{\dummyleftv}[3][You]{%
+\vspace{11 pt}
+\noindent\parbox{\linewidth}{%
+\begin{tabular}{cccccc}
+&&&&&\bf Dummy\\
+&&&&&\vhand{#2}\\
+&\bf #1\\
+&\vhand{#3}\\
+\end{tabular}}
+\vspace{3 pt}
+}
+
+
+%DUMMY RIGHT
+%Dummyright if for defensive problems when partner is on lead and dummy
+%is on the right. It takes 3 paramaters: [your name]{hand1}{hand2}
+%[your name] is optional, with a default of "You"
+
+\newcommand{\dummyright}[3][You]{%
+\vspace{11 pt}
+\noindent\parbox{\linewidth}{%
+\begin{tabular}{cccccc}
+&\bf Dummy\\
+&\hhand{#2}\\
+&&&&&\bf #1\\
+&&&&&\hhand{#3}\\
+\end{tabular}}
+\vspace{3 pt}
+}
+
+
+%DUMMYRIGHTV
+%Dummyrightv is the same as dummyright, but with vertical hands. It takes 3 paramaters: [your name]{hand1}{hand2}
+%[your name] is optional, with a default of "You"
+
+\newcommand{\dummyrightv}[3][You]{%
+\vspace{11 pt}
+\noindent\parbox{\linewidth}{%
+\begin{tabular}{cccccc}
+&\bf Dummy\\
+&\vhand{#2}\\
+&&&&&\bf #1\\
+&&&&&\vhand{#3}\\
+\end{tabular}}
+\vspace{3 pt}
+}
+
+
+%DUMMYCENTER
+%Dummycenter is for declarer problems.
+%It takes 3 paramaters: [your name]{hand1}{hand2}
+%[your name] is optional, with a default of "You"
+
+\newcommand{\dummycenter}[3][You]{%
+\vspace{11 pt}
+\noindent\parbox{\textwidth}{%
+\centering
+\textbf{Dummy}\\
+\hhand{#2}\\
+\vskip 11pt
+\textbf{#1}\\
+\hhand{#3}\\
+}
+\vspace{11 pt}
+}
+
+
+%###############################################################
+
+%UHOLD ENVIRONMENT
+
+%variables for uhold indentation
+\newlength{\uholdindent}
+\newlength{\uholdvspace}
+\setlength{\uholdindent}{4em}
+\setlength{\uholdvspace}{0pt}
+
+
+%uhold environment 
+\newenvironment{uhold}
+{%
+\Needspace{7\baselineskip}
+\ifthenelse{\boolean{uholdspace}}{%
+\spacecards%
+\leadingspace%
+\setlength{\uholdindent}{2em}}{%
+\setlength{\uholdindent}{4em}}%
+\vspace{1.5\defaultvspace}%
+\setlength{\topsep}{0pt}%
+\setlength{\partopsep}{0pt}%
+\setlength{\parsep}{0pt}%
+\setlength{\parskip}{0pt}%
+\begin{center}%
+\begin{minipage}{\textwidth}%
+\setlength{\parindent}{\uholdindent}%
+}%
+{%
+\end{minipage}%
+\end{center}%
+%\par\noindent%preventing indent afterwards
+}%
+\NoIndentAfterEnv{uhold}%prevents indent afterwards. requires noindentafter package
+
+%HANDDISCUSSION ENVIRONMENT
+\newenvironment{handdiscussion}
+{%
+\leavevmode\vtop{\hrule height 0pt \kern-\baselineskip}%
+\begin{center}%
+\setlength{\topsep}{4pt}%
+\setlength{\partopsep}{0pt}%
+\begin{minipage}{\textwidth}}%
+{\end{minipage}%
+\end{center}%
+%\vspace{-6pt}
+}
+
+
+
+
+%###################################################################################################
+%SUITCOMB V 3. Lines up with hand diagrams and uses either the hd settings or global settings
+%\suitcomb is for a dummy/declarer suit combination.
+\newcommand{\suitcombtop}
+
+\newcommand{\suitcombbottom}
+
+\newboolean{suitcombusehdsettings} %when true, formatting is based on hd settings; when false, based on global settings.
+
+\setboolean{suitcombusehdsettings}{true}
+
+
+
+%SUITCOMB
+\newcommand{\suitcomb}[3][]{\par\noindent%
+\setboolean{possiblecard}{false}%
+\vskip \defaultvspace%
+\StrBefore{#3}{,}[\suitcombrawtop]%
+\StrBehind{#3}{,}[\suitcombrawbottom]%
+\begin{adjustwidth}{0em}{-6em}%
+\begin{center}%
+\ifthenelse{\boolean{suitcombusehdsettings}}{%
+\ifthenelse{\boolean{hdsettings}}{%
+\ifthenelse{\boolean{letterten}}{\setboolean{oldletterten}{true}}{\setboolean{oldletterten}{false}}%
+\ifthenelse{\boolean{betweencards}}{\setboolean{oldbetweencards}{true}}{\setboolean{oldbetweencards}{false}}%
+\ifthenelse{\boolean{leadingspace}}{\setboolean{oldleadingspace}{true}}{\setboolean{oldleadingspace}{false}}%
+\ifthenelse{\boolean{hdletterten}}{\setboolean{letterten}{true}}{\setboolean{letterten}{false}}%
+\ifthenelse{\boolean{hdbetweencards}}{\setlength{\cardspace}{\hdcardspace}\setboolean{betweencards}{true}}{\setboolean{betweencards}{false}}%
+\ifthenelse{\boolean{hdleadingspace}}{\setlength{\leadspace}{\hdleadspace}\setboolean{leadingspace}{true}}{\setboolean{leadingspace}{false}}}{}}{}%
+
+\IfEqCase{#2}{%
+{c}{\renewcommand{\suitcombtop}{\clubs{\suitcombrawtop}}\renewcommand{\suitcombbottom}{\clubs{\suitcombrawbottom}}}%
+{d}{\renewcommand{\suitcombtop}{\diamonds{\suitcombrawtop}}\renewcommand{\suitcombbottom}{\diamonds{\suitcombrawbottom}}}%
+{h}{\renewcommand{\suitcombtop}{\hearts{\suitcombrawtop}}\renewcommand{\suitcombbottom}{\hearts{\suitcombrawbottom}}}%
+{s}{\renewcommand{\suitcombtop}{\spades{\suitcombrawtop}}\renewcommand{\suitcombbottom}{\spades{\suitcombrawbottom}}}}%
+[\renewcommand{\suitcombtop}{~\suitcombrawtop}%
+\renewcommand{\suitcombbottom}{~\suitcombrawbottom}]%
+
+\renewcommand{\arraystretch}{1.2}%
+%\setlength{\tabcolsep}{2pt}%
+
+\begin{tabularx}{.8\linewidth}{X@{}XX}%
+\hfill \textbf{\StrBefore{#1}{,}}~~~&\suitcombtop&\\%
+\hfill \textbf{\StrBehind{#1}{,}}~~~&\suitcombbottom&%
+\end{tabularx}%
+\end{center}%
+\end{adjustwidth}%
+\gap%
+\par\@afterindentfalse\@afterheading %preventing indent afterwards
+\nopagebreak[4]%
+\setboolean{possiblecard}{true}%
+}
+
+%######################################################################
+%TWOSUITCOMB
+\newcommand{\dummyone}{}
+\newcommand{\dummytwo}{}
+\newcommand{\declarerone}{}
+\newcommand{\declarertwo}{}
+
+%twosuitcomb, for a suitcomb with 2 suits. Arguments are [labels](optional){<suits>}{<dummy's 1st suit,dummy's 2nd suit,declarer's 1st suit, declarer's 2nd}
+\newcommand{\twosuitcomb}[3][]{\par\noindent%
+\setboolean{possiblecard}{false}%
+\vskip \defaultvspace%
+%\begin{adjustwidth}{0em}{-6em}%
+\begin{center}%
+\ifthenelse{\boolean{suitcombusehdsettings}}{%
+\ifthenelse{\boolean{hdsettings}}{%
+\ifthenelse{\boolean{letterten}}{\setboolean{oldletterten}{true}}{\setboolean{oldletterten}{false}}%
+\ifthenelse{\boolean{betweencards}}{\setboolean{oldbetweencards}{true}}{\setboolean{oldbetweencards}{false}}%
+\ifthenelse{\boolean{leadingspace}}{\setboolean{oldleadingspace}{true}}{\setboolean{oldleadingspace}{false}}%
+\ifthenelse{\boolean{hdletterten}}{\setboolean{letterten}{true}}{\setboolean{letterten}{false}}%
+\ifthenelse{\boolean{hdbetweencards}}{\setlength{\cardspace}{\hdcardspace}\setboolean{betweencards}{true}}{\setboolean{betweencards}{false}}%
+\ifthenelse{\boolean{hdleadingspace}}{\setlength{\leadspace}{\hdleadspace}\setboolean{leadingspace}{true}}{\setboolean{leadingspace}{false}}}{}}{}%
+
+\StrBefore{#3}{,}[\dummysuita]%
+\StrBetween[1,2]{#3}{,}{,}[\dummysuitb]%
+\StrBetween[2,3]{#3}{,}{,}[\othersuita]%
+\StrBehind[3]{#3}{,}[\othersuitb]%
+
+\IfEqCase{#2}{%
+{c,d}{%
+\renewcommand{\dummyone}{\diamonds{\dummysuita}}
+\renewcommand{\dummytwo}{\clubs{\dummysuitb}}%
+\renewcommand{\declarerone}{\diamonds{\othersuita}}
+\renewcommand{\declarertwo}{\clubs{\othersuitb}}%
+}%
+{d,c}{%
+\renewcommand{\dummyone}{\diamonds{\dummysuita}}
+\renewcommand{\dummytwo}{\clubs{\dummysuitb}}%
+\renewcommand{\declarerone}{\diamonds{\othersuita}}
+\renewcommand{\declarertwo}{\clubs{\othersuitb}}%
+}%
+{c,h}{%
+\renewcommand{\dummyone}{\hearts{\dummysuita}}
+\renewcommand{\dummytwo}{\clubs{\dummysuitb}}%
+\renewcommand{\declarerone}{\hearts{\othersuita}}
+\renewcommand{\declarertwo}{\clubs{\othersuitb}}%
+}%
+{h,c}{%
+\renewcommand{\dummyone}{\hearts{\dummysuita}}
+\renewcommand{\dummytwo}{\clubs{\dummysuitb}}%
+\renewcommand{\declarerone}{\hearts{\othersuita}}
+\renewcommand{\declarertwo}{\clubs{\othersuitb}}%
+}%
+{c,s}{%
+\renewcommand{\dummyone}{\spades{\dummysuita}}
+\renewcommand{\dummytwo}{\clubs{\dummysuitb}}%
+\renewcommand{\declarerone}{\spades{\othersuita}}
+\renewcommand{\declarertwo}{\clubs{\othersuitb}}%
+}%
+{s,c}{%
+\renewcommand{\dummyone}{\spades{\dummysuita}}
+\renewcommand{\dummytwo}{\clubs{\dummysuitb}}%
+\renewcommand{\declarerone}{\spades{\othersuita}}
+\renewcommand{\declarertwo}{\clubs{\othersuitb}}%
+}%
+{d,h}{%
+\renewcommand{\dummyone}{\hearts{\dummysuita}}
+\renewcommand{\dummytwo}{\diamonds{\dummysuitb}}%
+\renewcommand{\declarerone}{\hearts{\othersuita}}
+\renewcommand{\declarertwo}{\diamonds{\othersuitb}}%
+}%
+{h,d}{%
+\renewcommand{\dummyone}{\hearts{\dummysuita}}
+\renewcommand{\dummytwo}{\diamonds{\dummysuitb}}%
+\renewcommand{\declarerone}{\hearts{\othersuita}}
+\renewcommand{\declarertwo}{\diamonds{\othersuitb}}%
+}%
+{d,s}{%
+\renewcommand{\dummyone}{\spades{\dummysuita}}
+\renewcommand{\dummytwo}{\diamonds{\dummysuitb}}%
+\renewcommand{\declarerone}{\spades{\othersuita}}
+\renewcommand{\declarertwo}{\diamonds{\othersuitb}}%
+}%
+{s,d}{%
+\renewcommand{\dummyone}{\spades{\dummysuita}}
+\renewcommand{\dummytwo}{\diamonds{\dummysuitb}}%
+\renewcommand{\declarerone}{\spades{\othersuita}}
+\renewcommand{\declarertwo}{\diamonds{\othersuitb}}%
+}%
+{h,s}{%
+\renewcommand{\dummyone}{\spades{\dummysuita}}
+\renewcommand{\dummytwo}{\hearts{\dummysuitb}}%
+\renewcommand{\declarerone}{\spades{\othersuita}}
+\renewcommand{\declarertwo}{\hearts{\othersuitb}}%
+}%
+{s,h}{%
+\renewcommand{\dummyone}{\spades{\dummysuita}}
+\renewcommand{\dummytwo}{\hearts{\dummysuitb}}%
+\renewcommand{\declarerone}{\spades{\othersuita}}
+\renewcommand{\declarertwo}{\hearts{\othersuitb}}%
+}}%
+[\renewcommand{\dummyone}{\dummysuita}%
+\renewcommand{\dummytwo}{~\dummysuitb}
+\renewcommand{\declarerone}{\othersuita}%
+\renewcommand{\declarertwo}{~\othersuitb}]%
+
+\renewcommand{\arraystretch}{1.2}%
+%\setlength{\tabcolsep}{2pt}%
+
+%\begin{tabularx}{.8\linewidth}{X@{}XX}%
+%%\setlength{\tabcolsep}{0pt}%
+%\hfill\begin{tabular}{@{}r} \textbf{\StrBefore{#1}{,}}\\ \textbf{\StrBehind{#1}{,}}\end{tabular}&%
+%\setlength{\tabcolsep}{2pt}\begin{tabular}{@{}ll}\dummyone&%
+%\dummytwo\\\declarerone&\declarertwo\end{tabular}&\\%
+%\end{tabularx}%
+
+\begin{tabular}{lll}%
+\textbf{\StrBefore{#1}{,}}&\dummyone&\dummytwo\\%
+\textbf{\StrBehind{#1}{,}}&\declarerone&\declarertwo\\%
+\end{tabular}%
+\end{center}%
+%\end{adjustwidth}%
+%\gap%
+\par\@afterindentfalse\@afterheading %preventing indent afterwards
+\nopagebreak[4]%
+\setboolean{possiblecard}{true}%
+}
+%#######################################################################
+%CARDCOMB V 3. 
+
+\newlength{\northlength}
+\newlength{\southlength}
+\newlength{\eastindent}
+ 
+%cardcomb is one suit in all 4 hands. Optional suit argument, then 4 hands: North,East,South,West
+\newcommand{\cardcomb}[2][]{%
+\par\noindent%
+\setboolean{possiblecard}{false}%
+\vskip \defaultvspace%
+\begin{adjustwidth}{0em}{-6em}
+\begin{center}
+\ifthenelse{\boolean{suitcombusehdsettings}}{%
+\ifthenelse{\boolean{hdsettings}}{%
+\ifthenelse{\boolean{letterten}}{\setboolean{oldletterten}{true}}{\setboolean{oldletterten}{false}}
+\ifthenelse{\boolean{betweencards}}{\setboolean{oldbetweencards}{true}}{\setboolean{oldbetweencards}{false}}
+\ifthenelse{\boolean{leadingspace}}{\setboolean{oldleadingspace}{true}}{\setboolean{oldleadingspace}{false}}
+\ifthenelse{\boolean{hdletterten}}{\setboolean{letterten}{true}}{\setboolean{letterten}{false}}
+\ifthenelse{\boolean{hdbetweencards}}{\setlength{\cardspace}{\hdcardspace}\setboolean{betweencards}{true}}{\setboolean{betweencards}{false}}
+\ifthenelse{\boolean{hdleadingspace}}{\setlength{\leadspace}{\hdleadspace}\setboolean{leadingspace}{true}}{\setboolean{leadingspace}{false}}}}{}%
+
+\parsesuit{#2}%
+
+\setlength{\eastindent}{2em}%
+
+\settowidth{\northlength}{\hearts{\raws}}%
+\settowidth{\southlength}{\hearts{\rawd}}%
+
+
+\ifthenelse{\lengthtest{\northlength>\southlength}}{%
+\addtolength{\eastindent}{\northlength}}{\addtolength{\eastindent}{\southlength}}%
+
+
+\renewcommand{\arraystretch}{1.2}%
+%\setlength{\tabcolsep}{6pt}%
+
+\IfEq{#1}{c}{\begin{tabularx}{.8\linewidth}{X@{}XX}
+&\clubs{\raws}&\\
+\hfill\clubs{\rawc}\hspace*{2em}\null&\multicolumn{2}{l}{\hspace{\eastindent}\clubs{\rawh}}\\
+&\clubs{\rawd}&
+\end{tabularx}}{%
+
+\IfEq{#1}{d}{\begin{tabularx}{.8\linewidth}{X@{}XX}
+&\diamonds{\raws}&\\
+\hfill\diamonds{\rawc}\hspace*{2em}\null&\multicolumn{2}{l}{\hspace{\eastindent}\diamonds{\rawh}}\\
+&\diamonds{\rawd}&
+\end{tabularx}}{%
+
+\IfEq{#1}{h}{\begin{tabularx}{.8\linewidth}{X@{}XX}
+&\hearts{\raws}&\\
+\hfill\hearts{\rawc}\hspace*{2em}\null&\multicolumn{2}{l}{\hspace{\eastindent}\hearts{\rawh}}\\
+&\hearts{\rawd}&
+\end{tabularx}}{%
+
+\IfEq{#1}{s}{\begin{tabularx}{.8\linewidth}{X@{}XX}
+&\spades{\raws}&\\
+\hfill\spades{\rawc}\hspace*{2em}\null&\multicolumn{2}{l}{\hspace{\eastindent}\spades{\rawh}}\\
+&\spades{\rawd}&
+\end{tabularx}}{%
+\begin{tabularx}{.8\linewidth}{X@{}XX}
+&~\nosuit{\raws}&\\
+\hfill\nosuit{\rawc}\hspace*{2em}\null&\multicolumn{2}{l}{\hspace{\eastindent}\nosuit{\rawh}}\\
+&~\nosuit{\rawd}&
+\end{tabularx}}}}}
+\end{center}
+\end{adjustwidth}
+\vspace{6pt}
+\setboolean{possiblecard}{true}%
+\par\@afterindentfalse\@afterheading %preventing indent afterwards
+%\nopagebreak[4]
+}
+
+
+
+%##################################################################
+%DUMMYSUIT
+
+%dummysuits command, for 1, 2, or 3 suits with the dummy and one other hand
+
+\newcommand{\dummysuitsymbola}{}
+\newcommand{\dummysuitsymbolb}{}
+\newcommand{\dummysuitsymbolc}{}
+
+\newcommand{\dummyhand}{}
+\newcommand{\otherhand}{}
+\newcounter{suits}
+\newcounter{who}
+
+\newlength{\adjustleft}
+
+\newlength{\templength}
+
+
+
+%DUMMYSUIT
+\newcommand{\dummysuit}[4][Dummy,You]{%
+\setboolean{possiblecard}{false}%
+\vspace{\defaultvspace}
+\setlength{\templength}{\tabcolsep}
+
+\StrBefore{#1}{,}[\dummylabel]
+\StrBehind{#1}{,}[\otherlabel]
+
+\IfEq{#2}{east}{\setcounter{who}{1}}{}
+\IfEq{#2}{e}{\setcounter{who}{1}}{}
+\IfEq{#2}{right}{\setcounter{who}{1}}{}
+\IfEq{#2}{west}{\setcounter{who}{2}}{}
+\IfEq{#2}{w}{\setcounter{who}{2}}{}
+\IfEq{#2}{left}{\setcounter{who}{2}}{}
+\IfEq{#2}{center}{\setcounter{who}{3}}{}
+\IfEq{#2}{c}{\setcounter{who}{3}}{}
+\IfEq{#2}{south}{\setcounter{who}{3}}{}
+\IfEq{#2}{s}{\setcounter{who}{3}}{}
+\IfEq{#2}{declarer}{\setcounter{who}{3}}{}
+\IfEq{#2}{d}{\setcounter{who}{3}}{}
+
+
+\IfEqCase{#3}{%
+{c}{%
+\StrBefore{#4}{,}[\dummysuita]%
+\StrBehind{#4}{,}[\othersuita]%
+\renewcommand{\dummyhand}{\clubs{\dummysuita}}%
+\renewcommand{\otherhand}{\clubs{\othersuita}}%
+\setcounter{suits}{1}}%
+{d}{%
+\StrBefore{#4}{,}[\dummysuita]%
+\StrBehind{#4}{,}[\othersuita]%
+\renewcommand{\dummyhand}{\diamonds{\dummysuita}}%
+\renewcommand{\otherhand}{\diamonds{\othersuita}}%
+\setcounter{suits}{1}}%
+{h}{%
+\StrBefore{#4}{,}[\dummysuita]%
+\StrBehind{#4}{,}[\othersuita]%
+\renewcommand{\dummyhand}{\hearts{\dummysuita}}%
+\renewcommand{\otherhand}{\hearts{\othersuita}}%
+\setcounter{suits}{1}}%
+{s}{%
+\StrBefore{#4}{,}[\dummysuita]%
+\StrBehind{#4}{,}[\othersuita]%
+\renewcommand{\dummyhand}{\spades{\dummysuita}}%
+\renewcommand{\otherhand}{\spades{\othersuita}}%
+\setcounter{suits}{1}}%
+{c,d}{%
+\StrBefore{#4}{,}[\dummysuita]%
+\StrBetween[1,2]{#4}{,}{,}[\dummysuitb]%
+\StrBetween[2,3]{#4}{,}{,}[\othersuita]%
+\StrBehind[3]{#4}{,}[\othersuitb]%
+\renewcommand{\dummyhand}{\diamonds{\dummysuita}~\clubs{\dummysuitb}}%
+\renewcommand{\otherhand}{\diamonds{\othersuita}~\clubs{\othersuitb}}%
+\setcounter{suits}{2}}%
+{d,c}{%
+\StrBefore{#4}{,}[\dummysuita]%
+\StrBetween[1,2]{#4}{,}{,}[\dummysuitb]%
+\StrBetween[2,3]{#4}{,}{,}[\othersuita]%
+\StrBehind[3]{#4}{,}[\othersuitb]%
+\renewcommand{\dummyhand}{\diamonds{\dummysuita}~\clubs{\dummysuitb}}%
+\renewcommand{\otherhand}{\diamonds{\othersuita}~\clubs{\othersuitb}}%
+\setcounter{suits}{2}}%
+{c,h}{%
+\StrBefore{#4}{,}[\dummysuita]%
+\StrBetween[1,2]{#4}{,}{,}[\dummysuitb]%
+\StrBetween[2,3]{#4}{,}{,}[\othersuita]%
+\StrBehind[3]{#4}{,}[\othersuitb]%
+\renewcommand{\dummyhand}{\hearts{\dummysuita}~\clubs{\dummysuitb}}%
+\renewcommand{\otherhand}{\hearts{\othersuita}~\clubs{\othersuitb}}%
+\setcounter{suits}{2}}%
+{h,c}{%
+\StrBefore{#4}{,}[\dummysuita]%
+\StrBetween[1,2]{#4}{,}{,}[\dummysuitb]%
+\StrBetween[2,3]{#4}{,}{,}[\othersuita]%
+\StrBehind[3]{#4}{,}[\othersuitb]%
+\renewcommand{\dummyhand}{\hearts{\dummysuita}~\clubs{\dummysuitb}}%
+\renewcommand{\otherhand}{\hearts{\othersuita}~\clubs{\othersuitb}}%
+\setcounter{suits}{2}}%
+{c,s}{%
+\StrBefore{#4}{,}[\dummysuita]%
+\StrBetween[1,2]{#4}{,}{,}[\dummysuitb]%
+\StrBetween[2,3]{#4}{,}{,}[\othersuita]%
+\StrBehind[3]{#4}{,}[\othersuitb]%
+\renewcommand{\dummyhand}{\spades{\dummysuita}~\clubs{\dummysuitb}}%
+\renewcommand{\otherhand}{\spades{\othersuita}~\clubs{\othersuitb}}%
+\setcounter{suits}{2}}%
+{s,c}{%
+\StrBefore{#4}{,}[\dummysuita]%
+\StrBetween[1,2]{#4}{,}{,}[\dummysuitb]%
+\StrBetween[2,3]{#4}{,}{,}[\othersuita]%
+\StrBehind[3]{#4}{,}[\othersuitb]%
+\renewcommand{\dummyhand}{\spades{\dummysuita}~\clubs{\dummysuitb}}%
+\renewcommand{\otherhand}{\spades{\othersuita}~\clubs{\othersuitb}}%
+\setcounter{suits}{2}}%
+{d,h}{%
+\StrBefore{#4}{,}[\dummysuita]%
+\StrBetween[1,2]{#4}{,}{,}[\dummysuitb]%
+\StrBetween[2,3]{#4}{,}{,}[\othersuita]%
+\StrBehind[3]{#4}{,}[\othersuitb]%
+\renewcommand{\dummyhand}{\hearts{\dummysuita}~\diamonds{\dummysuitb}}%
+\renewcommand{\otherhand}{\hearts{\othersuita}~\diamonds{\othersuitb}}%
+\setcounter{suits}{2}}%
+{h,d}{%
+\StrBefore{#4}{,}[\dummysuita]%
+\StrBetween[1,2]{#4}{,}{,}[\dummysuitb]%
+\StrBetween[2,3]{#4}{,}{,}[\othersuita]%
+\StrBehind[3]{#4}{,}[\othersuitb]%
+\renewcommand{\dummyhand}{\hearts{\dummysuita}~\diamonds{\dummysuitb}}%
+\renewcommand{\otherhand}{\hearts{\othersuita}~\diamonds{\othersuitb}}%
+\setcounter{suits}{2}}%
+{d,s}{%
+\StrBefore{#4}{,}[\dummysuita]%
+\StrBetween[1,2]{#4}{,}{,}[\dummysuitb]%
+\StrBetween[2,3]{#4}{,}{,}[\othersuita]%
+\StrBehind[3]{#4}{,}[\othersuitb]%
+\renewcommand{\dummyhand}{\spades{\dummysuita}~\diamonds{\dummysuitb}}%
+\renewcommand{\otherhand}{\spades{\othersuita}~\diamonds{\othersuitb}}%
+\setcounter{suits}{2}}%
+{s,d}{%
+\StrBefore{#4}{,}[\dummysuita]%
+\StrBetween[1,2]{#4}{,}{,}[\dummysuitb]%
+\StrBetween[2,3]{#4}{,}{,}[\othersuita]%
+\StrBehind[3]{#4}{,}[\othersuitb]%
+\renewcommand{\dummyhand}{\spades{\dummysuita}~\diamonds{\dummysuitb}}%
+\renewcommand{\otherhand}{\spades{\othersuita}~\diamonds{\othersuitb}}%
+\setcounter{suits}{2}}%
+{h,s}{%
+\StrBefore{#4}{,}[\dummysuita]%
+\StrBetween[1,2]{#4}{,}{,}[\dummysuitb]%
+\StrBetween[2,3]{#4}{,}{,}[\othersuita]%
+\StrBehind[3]{#4}{,}[\othersuitb]%
+\renewcommand{\dummyhand}{\spades{\dummysuita}~\hearts{\dummysuitb}}%
+\renewcommand{\otherhand}{\spades{\othersuita}~\hearts{\othersuitb}}%
+\setcounter{suits}{2}}%
+{s,h}{%
+\StrBefore{#4}{,}[\dummysuita]%
+\StrBetween[1,2]{#4}{,}{,}[\dummysuitb]%
+\StrBetween[2,3]{#4}{,}{,}[\othersuita]%
+\StrBehind[3]{#4}{,}[\othersuitb]%
+\renewcommand{\dummyhand}{\spades{\dummysuita}~\hearts{\dummysuitb}}%
+\renewcommand{\otherhand}{\spades{\othersuita}~\hearts{\othersuitb}}%
+\setcounter{suits}{2}}%
+{c,d,h}{%
+\StrBefore{#4}{,}[\dummysuita]%
+\StrBetween[1,2]{#4}{,}{,}[\dummysuitb]%
+\StrBetween[2,3]{#4}{,}{,}[\dummysuitc]%
+\StrBetween[3,4]{#4}{,}{,}[\othersuita]%
+\StrBetween[4,5]{#4}{,}{,}[\othersuitb]%
+\StrBehind[5]{#4}{,}[\othersuitc]%
+\renewcommand{\dummyhand}{\hearts{\dummysuita}~\diamonds{\dummysuitb}~\clubs{\dummysuitc}}%
+\renewcommand{\otherhand}{\hearts{\othersuita}~\diamonds{\othersuitb}~\clubs{\othersuitc}}%
+\setcounter{suits}{3}}%
+{h,d,c}{%
+\StrBefore{#4}{,}[\dummysuita]%
+\StrBetween[1,2]{#4}{,}{,}[\dummysuitb]%
+\StrBetween[2,3]{#4}{,}{,}[\dummysuitc]%
+\StrBetween[3,4]{#4}{,}{,}[\othersuita]%
+\StrBetween[4,5]{#4}{,}{,}[\othersuitb]%
+\StrBehind[5]{#4}{,}[\othersuitc]%
+\renewcommand{\dummyhand}{\hearts{\dummysuita}~\diamonds{\dummysuitb}~\clubs{\dummysuitc}}%
+\renewcommand{\otherhand}{\hearts{\othersuita}~\diamonds{\othersuitb}~\clubs{\othersuitc}}%
+\setcounter{suits}{3}}%
+{c,d,s}{%
+\StrBefore{#4}{,}[\dummysuita]%
+\StrBetween[1,2]{#4}{,}{,}[\dummysuitb]%
+\StrBetween[2,3]{#4}{,}{,}[\dummysuitc]%
+\StrBetween[3,4]{#4}{,}{,}[\othersuita]%
+\StrBetween[4,5]{#4}{,}{,}[\othersuitb]%
+\StrBehind[5]{#4}{,}[\othersuitc]%
+\renewcommand{\dummyhand}{\spades{\dummysuita}~\diamonds{\dummysuitb}~\clubs{\dummysuitc}}%
+\renewcommand{\otherhand}{\spades{\othersuita}~\diamonds{\othersuitb}~\clubs{\othersuitc}}%
+\setcounter{suits}{3}}%
+{s,d,c}{%
+\StrBefore{#4}{,}[\dummysuita]%
+\StrBetween[1,2]{#4}{,}{,}[\dummysuitb]%
+\StrBetween[2,3]{#4}{,}{,}[\dummysuitc]%
+\StrBetween[3,4]{#4}{,}{,}[\othersuita]%
+\StrBetween[4,5]{#4}{,}{,}[\othersuitb]%
+\StrBehind[5]{#4}{,}[\othersuitc]%
+\renewcommand{\dummyhand}{\spades{\dummysuita}~\diamonds{\dummysuitb}~\clubs{\dummysuitc}}%
+\renewcommand{\otherhand}{\spades{\othersuita}~\diamonds{\othersuitb}~\clubs{\othersuitc}}%
+\setcounter{suits}{3}}%
+{c,h,s}{%
+\StrBefore{#4}{,}[\dummysuita]%
+\StrBetween[1,2]{#4}{,}{,}[\dummysuitb]%
+\StrBetween[2,3]{#4}{,}{,}[\dummysuitc]%
+\StrBetween[3,4]{#4}{,}{,}[\othersuita]%
+\StrBetween[4,5]{#4}{,}{,}[\othersuitb]%
+\StrBehind[5]{#4}{,}[\othersuitc]%
+\renewcommand{\dummyhand}{\spades{\dummysuita}~\hearts{\dummysuitb}~\clubs{\dummysuitc}}%
+\renewcommand{\otherhand}{\spades{\othersuita}~\hearts{\othersuitb}~\clubs{\othersuitc}}%
+\setcounter{suits}{3}}%
+{s,h,c}{%
+\StrBefore{#4}{,}[\dummysuita]%
+\StrBetween[1,2]{#4}{,}{,}[\dummysuitb]%
+\StrBetween[2,3]{#4}{,}{,}[\dummysuitc]%
+\StrBetween[3,4]{#4}{,}{,}[\othersuita]%
+\StrBetween[4,5]{#4}{,}{,}[\othersuitb]%
+\StrBehind[5]{#4}{,}[\othersuitc]%
+\renewcommand{\dummyhand}{\spades{\dummysuita}~\hearts{\dummysuitb}~\clubs{\dummysuitc}}%
+\renewcommand{\otherhand}{\spades{\othersuita}~\hearts{\othersuitb}~\clubs{\othersuitc}}%
+\setcounter{suits}{3}}%
+{d,h,s}{%
+\StrBefore{#4}{,}[\dummysuita]%
+\StrBetween[1,2]{#4}{,}{,}[\dummysuitb]%
+\StrBetween[2,3]{#4}{,}{,}[\dummysuitc]%
+\StrBetween[3,4]{#4}{,}{,}[\othersuita]%
+\StrBetween[4,5]{#4}{,}{,}[\othersuitb]%
+\StrBehind[5]{#4}{,}[\othersuitc]%
+\renewcommand{\dummyhand}{\spades{\dummysuita}~\hearts{\dummysuitb}~\diamonds{\dummysuitc}}%
+\renewcommand{\otherhand}{\spades{\othersuita}~\hearts{\othersuitb}~\diamonds{\othersuitc}}%
+\setcounter{suits}{3}}%
+{s,h,d}{%
+\StrBefore{#4}{,}[\dummysuita]%
+\StrBetween[1,2]{#4}{,}{,}[\dummysuitb]%
+\StrBetween[2,3]{#4}{,}{,}[\dummysuitc]%
+\StrBetween[3,4]{#4}{,}{,}[\othersuita]%
+\StrBetween[4,5]{#4}{,}{,}[\othersuitb]%
+\StrBehind[5]{#4}{,}[\othersuitc]%
+\renewcommand{\dummyhand}{\spades{\dummysuita}~\hearts{\dummysuitb}~\diamonds{\dummysuitc}}%
+\renewcommand{\otherhand}{\spades{\othersuita}~\hearts{\othersuitb}~\diamonds{\othersuitc}}%
+\setcounter{suits}{3}}%
+}
+
+\begin{center}
+
+\begin{tabularx}{.8\textwidth}{XcX}
+&\bf\dummylabel&\\
+&\dummyhand&
+\end{tabularx}
+
+%FOR EAST AND WEST
+\ifcase\boolexpr{\value{who}=1 \OR \value{who}=2} 
+%Setting formatting values based on # of suits
+\ifnum\value{suits}=1%
+   \ifnum\value{who}=1
+   \setlength{\adjustleft}{.65\textwidth}\fi
+   \ifnum\value{who}=2
+   \setlength{\adjustleft}{.2\textwidth}\fi
+   \ifnum\value{who}=3
+   \setlength{\adjustleft}{.6\textwidth}\fi
+\fi
+\ifnum\value{suits}=2%
+   \ifnum\value{who}=1
+   \setlength{\adjustleft}{.65\textwidth}\fi
+   \ifnum\value{who}=2
+   \setlength{\adjustleft}{.1\textwidth}\fi
+   \ifnum\value{who}=3
+   \setlength{\adjustleft}{.4\textwidth}\fi   
+\fi
+\ifnum\value{suits}=3%
+   \ifnum\value{who}=1
+   \setlength{\adjustleft}{.6\textwidth}\fi
+   \ifnum\value{who}=2
+   \setlength{\adjustleft}{.01\textwidth}\fi
+   \ifnum\value{who}=3
+   \setlength{\adjustleft}{.4\textwidth}\fi
+\fi
+\begin{adjustwidth}{\adjustleft}{0pt}
+\begin{tabular}{c}
+\bf \otherlabel\\
+\otherhand
+\end{tabular}
+\end{adjustwidth}   
+
+\else%FOR SOUTH
+\vspace{\defaultvspace}
+\begin{tabularx}{.8\textwidth}{XcX}
+&\bf\otherlabel&\\
+&\otherhand&
+\end{tabularx}
+\fi
+
+\end{center}
+\vspace{6pt}
+\setlength{\tabcolsep}{\templength}
+\setboolean{possiblecard}{true}%
+\par\@afterindentfalse\@afterheading %preventing indent afterwards
+}
+
+%##############################################################################
+%To prevent space after level and card macros
+
+\newboolean{spelllevel}
+\setboolean{spelllevel}{false}
+
+%LEVEL
+\newcommand{\level}[1]{%
+\ifthenelse{\boolean{spelllevel}}{%
+\IfEq{#1}{1}{\mbox{one-level}}{%
+\IfEq{#1}{2}{\mbox{two-level}}{%
+\IfEq{#1}{3}{\mbox{three-level}}{%
+\IfEq{#1}{4}{\mbox{four-level}}{%
+\IfEq{#1}{5}{\mbox{five-level}}{%
+\IfEq{#1}{6}{\mbox{six-level}}{%
+\IfEq{#1}{7}{\mbox{seven-level}}{%
+\IfEq{#1}{One}{\mbox{One-level}}{%
+\IfEq{#1}{Two}{\mbox{Two-level}}{%
+\IfEq{#1}{Three}{\mbox{Three-level}}{%
+\IfEq{#1}{Four}{\mbox{Four-level}}{%
+\IfEq{#1}{Five}{\mbox{Five-level}}{%
+\IfEq{#1}{Six}{\mbox{Six-level}}{%
+\IfEq{#1}{Seven}{\mbox{Seven-level}}{}}}}}}}}}}}}}}
+\unskip
+}
+{\mbox{#1-level}}
+\unskip
+}
+
+
+\newboolean{spellcard}
+\setboolean{spellcard}{false}
+
+%CARD
+\newcommand{\card}[1]{%
+\ifthenelse{\boolean{spellcard}}{%
+\IfEq{#1}{1}{\mbox{one-card}}{%
+\IfEq{#1}{2}{\mbox{two-card}}{%
+\IfEq{#1}{3}{\mbox{three-card}}{%
+\IfEq{#1}{4}{\mbox{four-card}}{%
+\IfEq{#1}{5}{\mbox{five-card}}{%
+\IfEq{#1}{6}{\mbox{six-card}}{%
+\IfEq{#1}{7}{\mbox{seven-card}}{%
+\IfEq{#1}{8}{\mbox{eight-card}}{%
+\IfEq{#1}{9}{\mbox{nine-card}}{%
+\IfEq{#1}{10}{\mbox{ten-card}}{%
+\IfEq{#1}{11}{\mbox{eleven-card}}{%
+\IfEq{#1}{12}{\mbox{twelve-card}}{%
+\IfEq{#1}{13}{\mbox{thirteen-card}}{%
+\IfEq{#1}{One}{\mbox{One-card}}{%
+\IfEq{#1}{Two}{\mbox{Two-card}}{%
+\IfEq{#1}{Three}{\mbox{Three-card}}{%
+\IfEq{#1}{Four}{\mbox{Four-card}}{%
+\IfEq{#1}{Five}{\mbox{Five-card}}{%
+\IfEq{#1}{Six}{\mbox{Six-card}}{%
+\IfEq{#1}{Seven}{\mbox{Seven-card}}{%
+\IfEq{#1}{Eight}{\mbox{Eight-card}}{%
+\IfEq{#1}{Nine}{\mbox{Nine-card}}{%
+\IfEq{#1}{Ten}{\mbox{Ten-card}}{%
+\IfEq{#1}{Eleven}{\mbox{Eleven-card}}{%
+\IfEq{#1}{Twelve}{\mbox{Twelve-card}}{%
+\IfEq{#1}{Thirteen}{\mbox{Thirteen-card}}{}}}}}}}}}}}}}}}}}}}}}}}}}}
+\unskip
+}
+{\mbox{#1-card}}
+\unskip
+}
+
+
+
+
+%###########################################################
+%MISC COMMANDS
+
+%LOTT
+\newcommand{\lott}{Law of Total Tricks}
+
+
+%BREAKER
+%Adds a section break using suit symbols.
+\newcommand{\breaker}{%
+%\par\noindent%
+\vspace{\defaultvspace}%
+\begin{adjustwidth}{8em}{8em}%
+\spadesymbol~\heartsymbol~\diamondsymbol~\clubsymbol%
+\hfill%
+\spadesymbol~\heartsymbol~\diamondsymbol~\clubsymbol%
+\end{adjustwidth}%
+\par\@afterindentfalse\@afterheading%preventing indent afterwards
+\vspace{\defaultvspace}}
+
+
+%SHAPE AND EXACT SHAPE
+%commands for denoting shapes.
+\newcommand{\shape}[1]{%
+\mbox{\StrChar{#1}{1}-\StrChar{#1}{2}-\StrChar{#1}{3}-\StrChar{#1}{4}}}
+
+\newcommand{\exactshape}[1]{%
+\mbox{\StrChar{#1}{1}=\StrChar{#1}{2}=\StrChar{#1}{3}=\StrChar{#1}{4}}}
+
+
+%AUCTIONNOTE
+%For nicely formatted superscript notes in auctions.
+\newcommand{\auctionnote}[1]{\,\ensuremath{^{#1}}}
+
+
+%EXPLANATION AND LEAD
+%commands for explanations/leads in auctionplus
+\newcommand{\explain}[1]{\par\noindent\vspace{-3pt}{\scriptsize #1}}
+
+\newcommand{\lead}[1]{\par\vspace*{.5\defaultvspace}Opening lead:~#1.}
+
+
+
+%BANG
+\newcommand{\bang}{\char33}
+
+%EW and NS
+\newcommand{\ew}{\mbox{E-W}}
+\newcommand{\ns}{\mbox{N-S}}
+
+%BRIDGESCORE
+\newcommand{\minus}{\scalebox{0.85}[1.0]{$-$}}
+
+\newcommand{\bridgescore}[1]{%
+\IfBeginWith{#1}{+}{%
+  ${\footnotesize\raisebox{0.12em}{$+$}}\StrGobbleLeft{#1}{1}$}{%
+  \IfBeginWith{#1}{-}{$\minus\StrGobbleLeft{#1}{1}$}{#1}}{}}
+
+%SUITSPLIT
+\newcommand{\suitsplit}[1]{\mbox{\StrBefore{#1}{,}--\StrBehind{#1}{,}}}
+
+\newcommand{\bwplussign}{{\footnotesize\raisebox{0.12em}{$+$}}}
+
+
+
+
+%NOTE
+\newcommand{\note}[1]{%
+\vspace{2\defaultvspace}
+\noindent
+\textbf{#1:}\\}
+
+
+\newcommand{\gap}{\vspace{\defaultvspace}}
+\newcommand{\biggap}{\vspace{2\defaultvspace}}
+\newcommand{\smallgap}{\vspace{.25\defaultvspace}}
+\newcommand{\halfgap}{\vspace{.5\defaultvspace}}
+\newcommand{\doublegap}{\vspace{2\defaultvspace}}
+%
+

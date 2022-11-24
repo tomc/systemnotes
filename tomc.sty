@@ -1,0 +1,128 @@
+% Note, % = a comment to end of line
+
+\ProvidesPackage{tomc}
+\RequirePackage{tabularray}
+\usepackage{url,color,parskip,lipsum,ulem,pbox} % ulem for strikeout font and \sout command
+\usepackage[colorlinks,linkcolor=black,urlcolor=green!50!black,pdfstartview=FitH]{hyperref}
+\usepackage[many]{tcolorbox}  
+
+\newcommand{\partner}{}
+\newcommand{\partnerfull}{}
+
+\newcommand{\handpat}[1]{{\sffamily #1}}
+
+\newcommand{\first}{1$^{st}$\thinspace}
+\newcommand{\second}{2$^{nd}$\thinspace}
+\newcommand{\third}{3$^{rd}$\thinspace}
+\newcommand{\fourth}{4$^{th}$\thinspace}
+\newcommand{\fifth}{5$^{th}$\thinspace}
+\newcommand{\half}{$\frac{1}{2}$\thinspace}
+\newcommand\ccc\clubsymbol
+\newcommand\ddd\diamondsymbol
+\newcommand\hhh\heartsymbol
+\newcommand\sss\spadesymbol
+
+\newbool{jenni}
+\newbool{christian}
+\newbool{ari}
+\setbool{jenni}{false}
+\setbool{christian}{false}
+\setbool{ari}{false}
+
+\definecolor{tomdark}{RGB}{17,88,66}
+\definecolor{tomlight}{RGB}{23,118,88}
+\definecolor{christian}{RGB}{0,119,200} % U of Alabama Huntsville 
+\definecolor{ari}{RGB}{217,11,54} % Stanford Crimson
+\definecolor{jenni}{RGB}{30,61,105} % Simmons
+\newcommand{\remcolor}{gray}
+\newcommand{\rem}[2]
+{
+	\ifstrequal{#1}{T}{\renewcommand{\remcolor}{tomdark}}
+	{\ifstrequal{#1}{A}{\renewcommand{\remcolor}{ari}}
+	{\ifstrequal{#1}{C}{\renewcommand{\remcolor}{christian}}
+	{\ifstrequal{#1}{J}{\renewcommand{\remcolor}{jenni}}
+	{\renewcommand{\remcolor}{gray}}}}}
+	\textit{\color{\remcolor}#1: #2}
+} 
+
+%
+% Modified description
+% In the original description, \labelwidth is set to z@, which seems to 
+%   mean 'length of item'
+% Setting it to a fixed width gives smooth tabbing, so long as no text
+%   exceeds that width
+% leftmargin is distance the block starts from the left margin
+% itemindent is a first-line-only indent, set to 0 for smooth multi-line 
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+
+\renewenvironment{description}
+	{\list{}{\labelwidth 20mm \itemindent 0cm \leftmargin 27mm
+		\let\makelabel\descriptionlabel}}
+	{\endlist}
+%%%%%
+
+
+\DefTblrTemplate{middlehead,lasthead}{default}
+{
+	\hspace{1.8in} % may need to tweak later
+	\UseTblrTemplate{caption-text}{default}
+	\hspace{-1in}
+	\UseTblrTemplate{conthead}{default}
+}
+
+
+\newenvironment{bidtable}[1]
+% pbox below is like parbox, but dynamically shrinks to fit text if width is > text, which it will be
+	{\begin{longtblr}
+			[caption=\pbox{\textwidth}{\hspace{1.5in}\orauction{#1}},entry=none,label=none]
+			{hlines,vlines,width=\textwidth,colspec={lp{.9\textwidth}}}
+	}{\end{longtblr}}	
+
+\newenvironment{compbidtable}[1]
+% pbox below is like parbox, but dynamically shrinks to fit text if width is > text, which it will be
+	{\begin{longtblr}
+		[caption=\pbox{\textwidth}{\compauct{#1}},entry=none,label=none]
+		{hlines,vlines,width=\textwidth,colspec={lp{.9\textwidth}}}
+	}{\end{longtblr}}	
+
+\newenvironment{destable}
+	{\begin{longtblr}
+		[entry=none,label=none]
+		{hlines,vlines,width=\textwidth,colspec={lp{.9\textwidth}}}
+	}{\end{longtblr}}	
+
+
+\newenvironment{auctionhead}{%
+	\par\noindent%
+	\setlength{\topsep}{0pt}%
+	\setlength{\partopsep}{0pt}%
+
+	\begin{minipage}{.8\textwidth}%
+		\setlength{\parindent}{0pt}%
+		\setlength{\auctionvspacebottom}{4pt}%
+		}
+		{%
+		\end{minipage}%	
+}
+
+\tcbuselibrary{skins,breakable}
+\newtcolorbox{noted}[1][]{
+	width=\textwidth,
+	colback=cyan!20,
+	colbacktitle=blue!85!black,
+	fonttitle=\bfseries,
+	left=0ex,
+	right=0ex,
+	top=0pt,
+	arc=0pt,
+	outer arc=0pt,
+	leftrule=0pt,
+	rightrule=0pt,
+	toprule=0pt,
+	bottomrule=0pt,
+	breakable,
+	enhanced jigsaw,
+	title= \center{#1}}
+
+\input{theorem}

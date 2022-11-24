@@ -1,0 +1,116 @@
+\documentclass[main]]{subfiles}
+\begin{document}
+
+\chapter{Leads}
+
+\section{Opening vs Suits}
+
+We generally lead 3rd/Low from length.  The only real exception is if we have supported partner's suit, we may lead a more attitude type approach. (High from Xxx, low from Hxx, etc.)
+
+Our default honor leads are A from Ace/King. \rem{Mar2022} If we have promised 4+ cards in a suit, we revert to Rusinow honors. Note that transfers such as \di1--(\he1)--Dbl do promise a suit, but negative doubles such as \di1--(\sp1)--Dbl do not promise any one suit, even the other major.  Takeout doubles are presumed to not claim any suit.  Note that if both hands have promised 4+ cards in the suit then either one would lead Rusinow if they are on opening lead.
+
+Signals to honor leads are generally attitude, but if attitude is known they may revert to suit preference.
+
+Example: \di1--(P)--\he1--(Dbl)--\he2 \ldots whichever hand is on lead would lead Rus honors in \hhh. 
+
+\section{Opening vs NT}
+
+Our spot leads are typically 2nd/4th from 4+ cards, top of xxx or fewer. (American 2nd/4th).  As versus suits, we may vary from this in partner's suit. We may lead low from xxx in some situations to show length -- a good example would be after a unsupported weak 2. If dummy is winning the trick and 3rd hand gets to signal, signals are count if the winning card is Q or lower, attitude if K or higher. For this purpose, it is presumed dummy plays the lowest of touching cards.  (e.g., if dummy has KQx and calls ``K'', we would still consider dummy to be winning the Q and is therefore count.)
+
+Honor leads are Rusinow from Q to 9, with 8 being a pivot card\footnote{Pivot card is the break point for Rusinow. 9 promises 10 or shortness, 8 might have the 9 or not.}. ``Shortness'' from a NT Rusinow perspective here is anything less than 4 cards, so we would still lead Q from QJx. We would lead Q from KQx to avoid the power lead, but this is a very rare exception.  
+
+Ace from AK is the default honor lead, with K being the ``power'' lead, asking for count or unblock. (e.g., KQT9). Signals to other honors are generally attitude about the honor below the led card.
+
+
+\section{Middle of the Hand}
+
+Middle of the hand leads are generally attitude. If we feel that count is important, we will continue to play 3rd/Low vs Suits and 4th vs NT.
+
+Against NT, if we win the opening lead and return the suit, we generally play lowest from 3+ remaining and high from 2. It is also possible that a high card might be led to hold the lead which may be done with any number.
+
+Honors revert to standard. 
+
+\chapter{Signal agreements}
+
+General carding rules: upside down count and attitude, regular suit preference. Priority of signals when partner on lead is Attitude/Suit Preference/Count; priority for following suit is Suit Pref/Count. When count is ``necessary'' we give count signals, but in general most cards following suit are S/P or just following suit.
+
+For a more specific example from play, see 
+
+Discards are generally attitude based.
+
+\section{Suit Preference}  
+
+Standard S/P means high for high and low for low.  Often times this is sufficient when a suit can be eliminated (such as trumps.) Middle cards are sometimes used to encourage the suit led despite a normal S/P situation (singleton on the board) or to encourage a trump shift.
+
+Other suit preference situations, such as following suit, there are often 3 suits in play. Sometimes we can infer a suit not being reasonable, but otherwise we encode in the following manner:
+
+With 2 cards to signal: High-Low indicates a high or middle suit, Low-High indicates a low suit or no preference.
+
+With 3 cards to signal:
+
+\begin{description}
+	\item [LMH:] Neutral or Mild Low suit
+	\item [LHM:] Strong low suit
+	\item [MHL:] Mild Middle
+	\item [MLH:] Strong Middle
+	\item [HLM:] Mild High
+	\item [HML:] Strong High
+\end{description}
+
+The unifying concept here is we always start with the suit we want to make (LMH). Then the more ``active'' we are (using higher spots) the more we like the suit we signaled.  For example, Middle then Low shows that we were actively signaling, so if we don't get a chance to complete the high at least partner will know we are interested in something. If we started MH they may not know this wasn't LH from 2.
+
+\chapter{Examples from Play}
+
+\section{Lost in Translation}
+
+Often times, it is important to signal with the clearest card possible. While subtleties can be nice, there is a danger that partner will not pick up on the message. 
+
+NABC+ BAM, SF 2019. 1st Qual. (rotated)
+
+\begin{handdiagram}
+	\north{76,akq,j53,qj986}
+	\south{q94,762,t84,ak54}
+	\east[Ari]{t83,954,aq72,t72}
+	\west[Tom]{akj52,jt83,k96,3}
+\end{handdiagram}	 	
+
+\auction[Tom,,Ari,]{,,,p,1s,x,2s,3c,3s,4c}
+
+\spades{K} lead, 6, \textit{8}, 4.
+
+\spades{A}, 7, 3, 9.
+
+\hearts{3} \ldots
+
+Ari was attempting to be subtle to try to show a diamond s/p. Tom thought at trick 1 that the 8 might be low (since the QT9 were still out). Once it was proven at trick 2 to not be the case, Tom put Ari on Q83, since from T83 he could play the T at trick 1. This led Tom to thinking that there was no need to switch to diamonds as there was no discard in spades. We dropped 1 trick. The board was still won at +100, but should have been +200.
+
+Tom thinks the best sequence is the T at trick 1, then the 4 for low s/p. 
+
+\section{Average hand}
+
+NABC+ BAM, SF 2019.  1st Qual (rotated)
+
+\begin{handdiagram}
+	\north{q73,j8,aq98654,q}
+	\south{k9,aq,,at9876432}
+	\east[Tom]{at54,t42,kt72,kj}
+	\west[Ari]{j862,k97653,j3,5}
+\end{handdiagram}	
+
+\auction[Ari,,Tom,]{,,,1c,2h,3d,3h,3n}
+
+\hearts {6}, 8, T, Q
+
+\clubs {A}, 5, Q, J
+
+\clubs {T}, \hearts {3}, \diamonds {4}, \clubs {K}
+
+\spades {4} \ldots
+
+Declarer made a creative 3NT bid. Their play at trick 2 was surprising. Tom played the \clubs {J} in a hope to indicate a holding like this. Declarer's \clubs{T} was a mistake, they should lead a lower spot. The 10 was much  too revealing, showing the 9 card suit to the defense. Ari didn't process this and discarded a heart in the hopes that it would indicate that he didn't have a spade card. Tom was desperate for a spade signal, as he knew declarer had \exactshape{2209} with the \hearts {AQ}. The only question was whether declarer had the \spades {K} or not. If no, a low spade back might beat the hand if Ari has both honors and break even otherwise. If yes, Tom must play a heart to wait for the \spades {A} and a heart trick at trick 12. Tom interpreted the heart as encouraging due to an entry (in spades) and therefore played a low spade.
+
+A direct signal in spades would have been more useful, the levels of indirection were ambiguous.
+
+The result didn't matter, teammates were in \cl6 down 1, so making 4 or 6 were both a loss.
+
+\end{document}

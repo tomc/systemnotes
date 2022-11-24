@@ -1,0 +1,154 @@
+\documentclass[main]{subfiles}
+\begin{document}
+	
+\chapter[1D]{\di1}
+	
+\di1 is our catch-all opening bid for hands with no 5-card major and fewer than 6 clubs. The range is (9)10-15 HCP if unbalanced or 10-13 HCP if balanced. In most seats \di1 does not promise any diamonds at all; \exactshape{4405} hands are routinely opened \di1.  The exception is in \third seat, \di1 promises 2+.  This is for convention chart reasons, to allow for lighter openers.  With awkward shapes you may open a 4 card major.
+
+The following hand types are included in the \di1 opener.
+\ifbool{christian}{
+\begin{itemize}
+	\item 10-13 HCP balanced
+	\item Natural \ddd
+	\item (9)10-15 HCP unbalanced, no 5-card major or 6-card minor
+\end{itemize}
+} % end christian
+{ % else
+\begin{itemize}
+  \item 10-13 HCP balanced
+  \item 12-15 HCP, 6+ \ddd
+  \item (9)10-15 HCP unbalanced, no 5-card major or 6-card minor
+\end{itemize}
+}
+
+Like most of our system, we try to invite and get out as low as possible. The structure reflects this concept. We may lose some granularity in some auctions to support this style, but such is life.
+
+\begin{bidtable}{1d}
+  P & 0--9. It is routine to pass with up to 9 HCP and no 4-card major. \\        
+  \he1 & 4+ \hhh, F1 \\
+  \sp1 & 4+ \sss, F1 \\
+  1NT (UPH) & 10--13 HCP, INV. No 4 card major \\
+  1NT (PH) & 8--9 HCP, No 4 card major \\
+  \cl2  &  10+ HCP, 5+ \ccc, F1 \\
+  \di2  &  10+ HCP, 5+ \ddd, F1 \\
+  \he2/\sss & Nat Inv  \\
+  2NT & Natural, GF. No 4-card major. 14--16 HCP or 19+ \\
+  \cl3 & Natural, 6+ \ccc, Mixed (7--9). No suit quality requirements.\\
+  \di3 & Natural, 6+ \ddd, Mixed (7--9). No suit quality requirements. \\
+  \he3/\sss & "Scambled Splinter". Shortness in bid suit, at least 5--4 either way in the minors, GF. \\
+  3NT & 17--18 HCP Balanced \\
+  \cl4/\ddd & South African Texas / Namyats \\
+  \he4/\sss & NF \\
+\end{bidtable}
+
+\section[1D--1M]{\di1--1M}
+
+\di1--1M is a standard response, showing 4+ cards in the suit bid and forcing 1 round. On very rare occasions we have been known to respond in a 3-card suit with a hand like \hhand{j,ktx,kjxx,98xxx}. This sort of response is outside expectation and if Responder chooses to do so they do at their own risk. Systemically this is a pass.
+
+After \di1--\he1 opener is expected to bid \sp1 any time they have 4 spades. Again, opener may choose to bid 1NT instead, but this is also non-systemic.  
+  \ifbool{christian}
+	{
+		\begin{bidtable}{1d,1h}
+			\sp1 & 4= \sss. Opener is never expected to bypass a 4-card spade suit. Judgment allowed of course, but rarely would be seen outside \exactshape{4333}. \\
+			1NT & 10--13 BAL. \shape{31xx} is common as well. \\
+			\cl2 & 5+ 4+ in the minors, either could be longer.  \\
+			\di2  &  6+ \ddd, (9)10--13\\
+			\he2 & Simple raise, usually (always?) 4 \hhh. 10--13 HCP if balanced. \\
+			\sp2 & Natural, shapely. 5--6 or better 13--15, NF. \\
+			2NT & 6+ \ddd~ 3 \hhh. Might rarely be 6--4 with the ``standard'' \di4 bid \\
+			\cl3 & 5+ \ddd~ 5+ \ccc (13)14--15 HCP, NF \\
+			\di3 & 6+ \ddd, good hand. \\
+			\he3 & 4 \hhh, unbalanced, typically (13)14--15 HCP \\
+			\sp3 & Spl \\
+			\cl4/\ddd & Spl \\
+		\end{bidtable}		
+	}{ %else
+	\begin{bidtable}{1d,1h}
+		\sp1 & 4= \sss. Opener is never expected to bypass a 4-card spade suit. Judgment allowed of course, but rarely would be seen outside \exactshape{4333}. \\
+		1NT & 10--13 BAL. \shape{31xx} is common as well. \\
+		\cl2 & 5+ 4+ in the minors, either could be longer.  \\
+		\di2  &  6+ \ddd, 12--15 HCP but not as good as \di3.  Often a poor suit. \\
+		\he2 & Simple raise, usually (always?) 4 \hhh. 10--13 HCP if balanced. \\
+		\sp2 & Natural, shapely. 5--6 or better 13--15, NF. \\
+		2NT & 6+ \ddd~ 3 \hhh. Might rarely be 6--4 with the ``standard'' \di4 bid \\
+		\cl3 & 5+ \ddd~ 5+ \ccc (13)14--15 HCP, NF \\
+		\di3 & 6+ \ddd, good hand. Note that \di2 is already more than a minimum, so this is a very strong hand/suit. \\
+		\he3 & 4 \hhh, unbalanced, typically (13)14--15 HCP \\
+		\sp3 & Spl \\
+		\cl4/\ddd & Spl \\
+	\end{bidtable}		
+	}
+
+Opener's rebids after \di1--\sp1 are similar.  The key difference is the \cl2 rebid and promised length in the minors.
+
+\begin{bidtable}{1d,1s}
+  \cl2 & Typically 5+ 4+ in the minors, although \exactshape{14xx} is possible with x ranging from 3 to 5.  \\
+\end{bidtable}
+
+\section[1D--1NT]{\di1--1NT}
+
+1NT is game invitational, 10--13. This is an attribute of TaJ that is quite dissimilar from most strong club systems.
+
+Generally speaking most auctions will end up either in 1NT or 3NT, but there options to handle other hand types.
+
+\begin{bidtable}{1d,1n}
+	\cl2 & To play, does not imply \ddd \\
+	\di2 & To play, presumably only 5 \ddd~ (no \di2 opener) \\
+	2NT & Re-invite. Typically 12--13 bal. \\
+	\cl3 & 5+ \ccc, 5+ \ddd, GF \\
+	\di3 & 6+ \ddd, 4= \ccc, GF \\
+	\he3 & 6+ \ddd, 4+ \hhh, GF \\
+	\sp3 & 6+ \ddd, 4+ \sss, GF \\
+	3NT & To play. \\
+\end{bidtable}
+
+\begin{info}
+	I'm reworking the other bids, I noticed a flaw in PVD.  It's likely going to involve \he2 being invite unbal and \sp2 GF unbal. The old bids were memory taxing anyway.
+\end{info}
+
+
+\section[1D--2m]{\di1--2m}
+
+A \cl2/\di2 response are both similar, natural and forcing 1 round, typically 10+. (Inv+)
+
+We play a modified Meckwell structure, using artificial rebids. Other than \he2, all bids promise a non-minimum.
+
+\begin{bidtable}{1d,2m}
+	\he2 & Any minimum. (Different from Meckwell) Over this \sp2 is ``Lebensohl'', requesting 2NT for sign off there or in a minor. (Opener can bid 3m instead of 2NT if appropriate.) \\
+	\sp2 & GF, Unspecified splinter raise of Responder's minor. 2NT asks LMH. \\
+	2NT & Typically 12--13 bal. 3m rebid non-forcing. \\
+	om,R &  Natural, non-min. \\
+\end{bidtable}
+
+Generally speaking, rebidding the minor by Responder is NF. The exception is over the \he2 minimum bid, where \sp2 starts all weak sequences and 3 of a minor directly (new or old) is forcing.
+
+\section[1D--2M]{\di1--2M}
+
+6+ Natural, game invitational.  New suits F1, other NF.  Probably should expand on this definition some.
+
+\section[1D--2NT]{\di1--2NT}
+
+GF balanced. No special methods at this time. 13+ to 16 or 19+.  \cl4 is Gerber (1430).  (Presumably more often by Responder.)
+
+\section[1D--3m]{\di1--3m}
+
+Mixed strength, 6+ natural.
+
+\section[1D--3M]{\di1--3M}
+
+Splinter with both minors, at least \shape{xx54}, GF.
+
+\section[1D--3NT]{\di1--3NT}
+
+17--18 balanced. No special methods. \cl4 is Gerber (1430).
+
+\section{Other}
+
+4M natural and to play.
+
+4m is South African Texas / Namyats:  \cl4=\hhh, \di4=\sss.  Opener may bid the step in between to express slam interest.  Over sign off, new suits by Responder are exclusion (like most Texas xfers).   
+
+\end{document}
+
+
+

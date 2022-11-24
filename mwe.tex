@@ -1,0 +1,126 @@
+\documentclass[letterpaper,11pt,oneside]{memoir}
+\usepackage{tomc} % reduced version of my bridge.sty
+\usepackage{bridgewinners} % taken without modification, but changing things below
+\usepackage{fontspec}
+\usepackage{unicode-math}  % to allow for new fonts in math mode (i.e., suit symbols)
+\usepackage{subfiles} % To have chapters be in separate docs
+\usepackage[margin=.2\textwidth]{geometry}
+\usepackage{graphicx, tikz}
+
+
+\setmainfont{DejaVu Serif}
+\setmathfont{DejaVu Serif}
+
+\renewcommand{\partner}{Jenni}
+\renewcommand{\partnerfull}{Jenni}
+\setbool{jenni}{true}
+
+\author{\partnerfull~\& Tom Carmichael}
+\cftsetindents{part}{-1em}{3em} % Adjust table of content defaults, numbers and titles were running together.
+\cftsetindents{chapter}{-1em}{3em}
+\cftsetindents{section}{0em}{3em}
+\setcounter{tocdepth}{1} % include sections not subsections
+
+\abnormalparskip{1em} % add space between paragraphs for readability
+
+% What suit symbols to use?  Flag for BW printing vs ebook/web
+\newboolean{bwprint}
+\setboolean{bwprint}{true}
+\ifthenelse{\boolean{bwprint}}{%
+	\standardsuitsymbols}{%
+	\colorsuitsymbols}
+% ---------------- %
+
+\letterten
+\chapterstyle{ell}
+\renewcommand{\chapterheadstart}{\vspace*{0em}}
+
+\setlength\parindent{0pt} % Ari prefers no indentation for all paragraphs.
+
+
+\begin{document}
+	\frontmatter
+	
+	\input{coverpage}
+	
+	\title{\partner~\& Tom System Notes}
+	\maketitle
+	\tableofcontents
+	
+	\mainmatter
+	
+	\lipsum[1]
+
+	\ifbool{jenni}{This is Jenni only}{Not Jenni}		
+	\ifbool{christian}{This is Christian only}{Not Christian}
+	\ifbool{ari}{This is Ari only}{Not Ari}
+			
+
+	\begin{bidtable}{1c,1d,1n}
+		\cl1 & \lipsum[4] \\
+		\cl2 & test2 \\
+		\cl3 & \lipsum[1] \\
+		\cl4 & \\
+		\cl5 & \lipsum[2] \\
+		\cl6 & \\
+		\cl7 & \lipsum[3] \\
+		7NT & test NT \\
+	\end{bidtable}
+
+	\begin{compbidtable}{1c,1d,1n}
+		\cl1 & \lipsum[4] \\
+		\di1 & \lipsum[2] \\
+		\he1 & \lipsum[5] \\
+	\end{compbidtable}
+
+	\begin{destable}
+		\cl1 & test1 \\
+		\cl2 & ]libsum[1] \\
+	\end{destable}
+		
+	\rem{T}{Test remark}
+	
+	\rem{A}{More test}
+	
+	\rem{C}{3rd test}
+	
+	\rem{J}{4th test}
+	
+	\rem{Unknown}{5th test}
+	
+	\begin{noted}[This is a test]
+		testing 1 2 3
+	\end{noted}
+
+\begin{wrong}
+	wrong testing 1 2 3
+\end{wrong}
+
+\begin{correct}
+	correct testing 1 2 3
+\end{correct}
+
+\begin{quote}
+	quote testing 1 2 3
+\end{quote}
+	
+\begin{info}
+	info
+\end{info}
+
+\begin{warning}
+	warning
+\end{warning}
+
+\begin{caution}
+	caution
+\end{caution}
+
+\begin{terminology}
+	terminology
+\end{terminology}	
+	This is a test paragraph.  I want to put some stuff here just to see what happens when I move to the next paragraph.  This is just dummy text.
+	
+	Okay, next paragraph.  Yay?		
+	\backmatter
+\end{document}

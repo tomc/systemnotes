@@ -1,0 +1,50 @@
+\documentclass[main]{subfile}
+
+\begin{document}
+	
+\chapter{Weak 2 bids}
+\ifbool{christian}
+{ 
+We play weak 2 bids in \ddd ~and \sss. Our bids are mostly undisciplined.  Non-vul 5 card suits are common, vul they are unexpected. (A 7 card suit is possible instead.) The HCP range is nominally 3--9, but it should be noted that 9 with 6= is often a 1 bid in our style.
+
++1 is 5/7 Ogust.  (\di2--\he2 or \sp2--2NT).  \di2--2NT is the forcing heart response.  \rem{T}{As of the current writing I believe \di2--\sp2 is forcing but there was discussion about changing that.}
+
+\begin{bidtable}{2d/\sss,+1}
+	+1 & An odd number of trumps, 5 NV or 7 Vul. Next step asks strength bad/medium/good \\
+	+2 & 6, bad opener \\
+	+3 & 6, medium opener \\
+	+4 & 6, good opener \\
+	 & \pgfornament[color=tomdark, scale=.15, anchor=south]{17}\pgfornament[color=tomdark, scale=.15, anchor=south]{17}\pgfornament[color=tomdark, scale=.15, anchor=south]{17}\textbf{\di2 Only}\pgfornament[color=tomdark, scale=.15, anchor=south]{18}\pgfornament[color=tomdark, scale=.15, anchor=south]{18}\pgfornament[color=tomdark, scale=.15, anchor=south]{18}\\
+	\he3 & 4= \sss, 6 \ddd \\
+	\sp3 & 4= \hhh, 6 \ddd \\
+	3NT & 4= \ccc, 6 \ddd \\
+\end{bidtable}  
+
+}
+{ %else
+Weak 2s, fairly undisciplined. Non-vul 5 card suits are common, vul they are unexpected. (7 card suit possible.) The range is 3--9 HCP. Note that many 9s with 6 card suits are opened on the 1 level.
+
+New suits are natural and forcing. 2NT is a modified Ogust system I've named ``5/7 Ogust''.
+
+	\begin{bidtable}{\orauction{2M,2NT}}
+		\cl3 & An odd number of trumps, 5 NV or 7 Vul. \di3 asks strength as per below. \\
+		\di3 & 6, bad opener \\
+		\he3 & 6, medium opener \\
+		\sp3 & 6, good opener \\
+		3NT & 6, 4 in other major. Good enough to commit to game. \\
+	\end{bidtable}
+		
+Preempt RKC:
+
+	\begin{bidtable}{\orauction{2M,4c}}
+		\di4 & 0 KC \\
+		\he4 & 1 KC, no trump Q \\
+		\sp4 & 1 KC, trump Q \\
+		4NT & 2 KC, no trump Q \\
+		\cl5 & 2 with Q in theory, unlikely response \\
+	\end{bidtable}
+} % end else	
+\end{document}
+
+
+
