@@ -26,3 +26,83 @@
 \setlength\parindent{0pt} % Ari prefers no indentation for all paragraphs.
 
 \abnormalparskip{1em} % add space between paragraphs for readability
+
+% ToC was not aligning properly, going to modify to get better spacing and readibility based on https://tex.stackexchange.com/questions/35825/pretty-table-of-contents
+
+% a modification of the leftbar environment defined by the framed package
+% will be used to place a vertical colored bar separating the page number and the
+% title in chapter entries
+\renewenvironment{leftbar}{%
+	\def\FrameCommand{\textcolor{christian}{\vrule width 2pt depth 6pt}\hspace*{15pt}}%
+	\MakeFramed{\advance\hsize-\width\FrameRestore}}%
+{\endMakeFramed}
+
+% a command to circle the part numbers
+\newcommand\Circle[1]{\tikz[overlay,remember picture] 
+	\node[draw=christian,circle, text width=18pt,line width=1pt,align=center] {#1};}
+
+% redefinition of the name of the ToC
+\renewcommand\printtoctitle[1]{\HUGE\sffamily\bfseries#1}
+
+\makeatletter
+% redefinitions for part entries
+\renewcommand\cftpartfont{\Huge\sffamily\bfseries\hfill}
+\renewcommand\partnumberline[1]{%
+	\hbox to \textwidth{\hss\Circle{\textcolor{christian}{#1}}\hss}%
+	\vskip3.5ex\par\hfill\color{tomdark}}
+\renewcommand*\cftpartformatpnum[1]{\hfill}
+\renewcommand\cftpartafterpnum{\vskip1ex}
+
+% redefinitions for chapter entries
+\renewcommand\chapternumberline[1]{\mbox{\small\@chapapp~#1}\par\noindent\Large}
+\renewcommand\cftchapterfont{\sffamily}
+\cftsetindents{chapter}{0pt}{0em}
+\renewcommand\cftchapterpagefont{\Huge\sffamily\bfseries\color{tomdark}}
+
+\newcommand*{\l@mychap}[3]{%
+	\def\@chapapp{#3}
+	\vskip1ex%
+	\par\noindent\begin{minipage}{\textwidth}%
+		\parbox{4.5em}{%
+			\hfill{\cftchapterpagefont#2}%
+		}\hspace*{1.5em}%
+		\parbox{\dimexpr\textwidth-4.5em-15pt\relax}{%
+			\leftbar\cftchapterfont#1\hspace{1sp}\endleftbar%
+		}%
+	\end{minipage}\par%
+}
+
+\renewcommand*{\l@chapter}[2]{%
+	\l@mychap{#1}{#2}{\chaptername}%
+}
+
+\renewcommand*{\l@appendix}[2]{%
+	\l@mychap{#1}{#2}{\appendixname}%
+}
+
+% redefinitions for section entries
+\renewcommand\cftsectionfont{\sffamily}
+\renewcommand\cftsectionpagefont{\sffamily\itshape\color{tomdark}}
+\renewcommand\cftsectionleader{\nobreak}
+\renewcommand\cftsectiondotsep{\cftnodots}
+\renewcommand\cftsectionafterpnum{\hspace*{\fill}}
+\setlength\cftsectionnumwidth{12em}
+\cftsetindents{section}{6em}{3em}
+\renewcommand\cftsectionformatpnum[1]{%
+	\hskip1em\hbox to \@pnumwidth{{\cftsectionpagefont #1\hfill}}}
+
+% redefinitions for subsection entries
+\renewcommand\cftsubsectionfont{\sffamily}
+\renewcommand\cftsubsectionpagefont{\sffamily\itshape\color{myred}}
+\renewcommand\cftsubsectionleader{\nobreak}
+\renewcommand\cftsubsectiondotsep{\cftnodots}
+\renewcommand\cftsubsectionafterpnum{\hspace*{\fill}}
+\setlength\cftsubsectionnumwidth{12em}
+\cftsetindents{subsection}{9em}{3em}
+\renewcommand\cftsubsectionformatpnum[1]{%
+	\hskip1em\hbox to \@pnumwidth{{\cftsubsectionpagefont #1\hfill}}}
+\makeatother
+
+%\settocdepth{subsection}
+%\setsecnumdepth{subsection}
+
