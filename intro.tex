@@ -5,11 +5,38 @@
 
 Since I needed to rebuild the document structure anyway, I'm taking this opportunity to merge the document flow for the Jenni, Ari and Christian partnerships into a single new grand unification of the notes.  
 
-The main meat of the document will be maintained to be compatible with all partnerships, the document will be compiled with the appropriate name-tom.tex file to generate that PDF.  The notes will be interspersed with \textit{if} statements to ensure the accuracy for the individual partnership while allowing the common elements to only need a single point of editing to ensure consistency across.
+\LaTeX ~Technical comment:  the main meat of the document will be maintained to be compatible with all partnerships, the document will be compiled with the appropriate name-tom.tex file to generate that PDF.  The notes will be interspersed with \textit{ifbool} statements to ensure the accuracy for the individual partnership while allowing the common elements to only need a single point of editing to ensure consistency across.
 
 \section{Versions}
 
-\subsection{Initial Version - Nov 2022}
+\ifbool{christian}{
+\subsection{23.3.9}
+
+\begin{itemize}
+	\item Updated To Do
+	\begin{itemize}
+		\item xfers/\cl2 confirmed and in notes
+		\item Remove \second ~\& ~\fourth carding
+		\item xfer McCabe moved to notes
+		\item \di1--1NT--2M for inv/GF unbal hands.
+	\end{itemize}
+	\item System Summary
+	\begin{itemize}
+		\item Remove reference to old \di2 opener
+		\item Relay, text clean up for +6 step
+	\end{itemize}
+	\item \cl1--\di1
+	\begin{itemize}
+		\item Text clean up 
+		\item Adding "subsection" structure for clarity
+		\item Adding inv+ xfer/xfer to 1NT rebid
+		\item Expanding Kokish agreements over \he3 rebid
+	\end{itemize}
+	\item \di1--2M updates
+	\item 1NT 2nd xfer sequences now Inv+ when Responder is limited.  (PH or \cl1--\di1--1NT) Rebids are natural over these.
+\end{itemize}
+}{}
+\subsection{Initial Version - 22.11.0}
 
 Canonical version, will include any changes from previous March 2022 version of tom-jenni.  Ari version hasn't been touched in a bit so I will try to pull in the notes ``as is''.
 
@@ -33,10 +60,11 @@ Notation hasn't changed from previous versions, with one new addition:  just as 
 	JS& Jump Shift\\
 	DJS& Double Jump Shift\\
 	UTL& Up The Line (\ccc\ddd\hhh\sss)\\
+	COG& Choice of Games\\
 	OKC& Optional Key Card\\
-	\#+ suit& \# or more cards in the suit\\
-	\#-- suit& \# or fewer cards in the suit\\
-	\#= suit& exactly \# cards in the suit\\
+	\#+suit& \# or more cards in the suit\\
+	\#--suit& \# or fewer cards in the suit\\
+	\#=suit& exactly \# cards in the suit\\
 \end{destable}
 
 
