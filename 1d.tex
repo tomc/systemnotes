@@ -45,11 +45,11 @@ Like most of our system, we try to invite and get out as low as possible. The st
 
 \di1--1M is a standard response, showing 4+ cards in the suit bid and forcing 1 round. On very rare occasions we have been known to respond in a 3-card suit with a hand like \hhand{j,ktx,kjxx,98xxx}. This sort of response is outside expectation and if Responder chooses to do so they do at their own risk. Systemically this is a pass.
 
-After \di1--\he1 opener is expected to bid \sp1 any time they have 4 spades. Again, opener may choose to bid 1NT instead, but this is also non-systemic.  
+After \di1--\he1 opener is expected to bid \sp1 any time they have 4 spades including \exactshape{4x6x}. Again, opener may choose to bid 1NT instead but this is in principle non-systemic and I wouldn't expect to ever do it without \exactshape{4333}.  
   \ifbool{christian}
 	{
 		\begin{bidtable}{1d,1h}
-			\sp1 & 4=\sss. Opener is never expected to bypass a 4-card spade suit. Judgment allowed of course, but rarely would be seen outside \exactshape{4333}. \\
+			\sp1 & 4=\sss. Opener is expected to rarely bypass a 4-card spade suit. \\
 			1NT & 10--13 BAL. \shape{31xx} is common as well. \\
 			\cl2 & 54++ in the minors, either could be longer.  \\
 			\di2  & 6+\ddd, (9)10--13\\
@@ -57,14 +57,14 @@ After \di1--\he1 opener is expected to bid \sp1 any time they have 4 spades. Aga
 			\sp2 & Natural, shapely. 5--6 or better 13--15, NF. \\
 			2NT & 6+\ddd \& 3=\hhh. Might rarely be 6--4 with the ``standard'' \di4 bid. (Our \di4 is a splinter.) \\
 			\cl3 & 5+\ddd~ \& 5+\ccc (13)14--15 HCP, NF \\
-			\di3 & 6+\ddd, good hand. \\
+			\di3 & 6+\ddd, good hand. Notably \exactshape{xx64} has no other bid.\\
 			\he3 & 4=\hhh, unbalanced, typically (13)14--15 HCP \\
 			\sp3 & Spl \\
 			\cl4/\ddd & Spl \\
 		\end{bidtable}		
 	}{ %else
 	\begin{bidtable}{1d,1h}
-		\sp1 & 4=\sss. Opener is never expected to bypass a 4-card spade suit. Judgment allowed of course, but rarely would be seen outside \exactshape{4333}. \\
+		\sp1 & 4=\sss. Opener is expected to rarely bypass a 4-card spade suit.  \\
 		1NT & 10--13 BAL. \shape{31xx} is common as well. \\
 		\cl2 & 54++ in the minors, either could be longer.  \\
 		\di2  & 6+\ddd, 12--15 HCP but not as good as \di3.  Often a poor suit. \\
@@ -84,6 +84,8 @@ Opener's rebids after \di1--\sp1 are similar.  The key difference is the \cl2 re
 \begin{bidtable}{1d,1s}
   \cl2 & Typically 54++ in the minors, although \exactshape{14xx} is possible with x ranging from 3 to 5.  \\
 \end{bidtable}
+
+It is worth noting that \di1--\sp1--\he2 can be \exactshape{x46x}, you do not promise 5 hearts.
 
 \section[1D--1NT]{\di1--1NT}
 
@@ -129,7 +131,7 @@ We play a modified Meckwell structure, using artificial rebids. Other than \he2,
 	\he2 & Any minimum. (Different from Meckwell) Over this \sp2 is ``Lebensohl'', requesting 2NT for sign off there or in a minor. (Opener can bid 3m instead of 2NT if appropriate.) \\
 	\sp2 & GF, Unspecified splinter raise of Responder's minor. 2NT asks LMH. \\
 	2NT & Typically 12--13 bal. 3m rebid non-forcing. \\
-	om,R &  Natural, non-min, GF. \\
+	om,R &  Natural, non-min. A raise can be passed, the om is GF. (Unbal GF raises start with \sp2.)\\
 \end{bidtable}
 
 \begin{info}
@@ -140,7 +142,7 @@ We play a modified Meckwell structure, using artificial rebids. Other than \he2,
 \section[1D--2M]{\di1--2M}
 
 	\begin{info}
-		New version 23.3.9
+		New version 23.3.9 - on hold for now until Christian has a chance to review. (Not his fault, problem with github upload.)
 	\end{info}
 
 	(UPH) 4=M, 5+ either m, GF. +1 asks for the minor and denies support for M. +2 asks for the minor while showing support for M. In both cases, first step is all \ccc~ hands with +1 asking shortness NLH. +2--+4 responses are NLH short with \ddd~ length.
@@ -158,6 +160,8 @@ Mixed strength, 6+ natural.
 \section[1D--3M]{\di1--3M}
 
 Splinter with both minors, at least \shape{xx54}, GF.
+
+For now, bids simply set trumps for further exploration however it may make sense to play some sort of Mulberry instead.  For reference, I'd want to use Kit's version, see \nameref{Kitberry} --- \ref{Kitberry}.
 
 \section[1D--3NT]{\di1--3NT}
 
