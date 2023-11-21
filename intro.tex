@@ -8,7 +8,18 @@ Since I needed to rebuild the document structure anyway, I'm taking this opportu
 \LaTeX ~Technical comment:  the main meat of the document will be maintained to be compatible with all partnerships, the document will be compiled with the appropriate name-tom.tex file to generate that PDF.  The notes will be interspersed with \textit{ifbool} statements to ensure the accuracy for the individual partnership while allowing the common elements to only need a single point of editing to ensure consistency across.
 
 \section{Versions}
+\subsection{23.7}
+This is primarily a Christian update, but there are changes which will impact the general notes.  Mostly clean up for the non-Christian notes.
 
+\begin{itemize}
+	\item Updated To Do
+	\item Clean up for clarity or formatting
+	\ifbool{christian}{
+		\item New \di1 defense
+		\item Fix references to other \di2 opener
+		\item Move \cl2 system out of BETA.
+		}{}
+\end{itemize}
 \ifbool{christian}{
 \subsection{23.3.9}
 
